@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chronos // Time Travel - Interactive Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Time Travel / Sci-Fi Dark Theme */
+            --bg-dark: #0d0f1a;
+            --panel-bg: #161a2b;
+            --neon-cyan: #00e5ff;
+            --neon-purple: #9933ff;
+            --neon-gold: #ffcc00;
+            --neon-green: #39ff14;
+            --neon-red: #ff3355;
+            --text-main: #f5f5f5;
+            --text-muted: #9aa4b8;
+            --radius-lg: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+            background-image:
+                radial-gradient(circle at 15% 25%, rgba(0, 229, 255, 0.08), transparent 35%),
+                radial-gradient(circle at 85% 75%, rgba(153, 51, 255, 0.08), transparent 35%),
+                radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.04), transparent 45%);
+        }
+
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header-banner {
+            background-color: rgba(13, 15, 26, 0.95);
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(to right, var(--neon-cyan), var(--neon-purple), var(--neon-gold), var(--neon-cyan)) 1;
+            padding: 15px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.12);
+            z-index: 10;
+        }
+
+        .header-banner h1 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.65);
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: bold;
+            font-size: 1.15rem;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--neon-gold);
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.35);
+        }
+
+        #app-container {
+            max-width: 920px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .level-card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 229, 255, 0.22);
+            border-radius: var(--radius-lg);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .level-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 8px 25px rgba(0, 229, 255, 0.22);
+        }
+
+        .level-card h2, .level-card h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-main);
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .level-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid rgba(153, 51, 255, 0.35);
+            background-color: rgba(0, 0, 0, 0.45);
+        }
+
+        .action-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 13px 18px;
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: var(--text-main);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            border-color: var(--neon-cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.45);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-correct {
+            background-color: rgba(57, 255, 20, 0.2) !important;
+            border-color: var(--neon-green) !important;
+            color: var(--neon-green) !important;
+        }
+
+        .btn-wrong {
+            background-color: rgba(255, 51, 85, 0.2) !important;
+            border-color: var(--neon-red) !important;
+            color: var(--neon-red) !important;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 2rem;
+        }
+
+        .reading-container {
+            background: var(--panel-bg);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(153, 51, 255, 0.3);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            font-size: 1.08rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+        }
+
+        .reading-container h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .word-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            padding: 1.1rem;
+            background: rgba(0, 229, 255, 0.04);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 6px;
+        }
+
+        .cloud-word {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            padding: 6px 12px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border: 1px solid #384166;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            border-radius: 5px;
+        }
+
+        .cloud-word.found {
+            background: rgba(0, 229, 255, 0.2);
+            color: var(--neon-cyan);
+            border-color: var(--neon-cyan);
+            text-decoration: line-through;
+        }
+
+        .interactive-word {
+            cursor: pointer;
+            padding: 0 2px;
+            border-bottom: 1px dotted #687399;
+            transition: color 0.2s;
+        }
+
+        .interactive-word:hover {
+            color: var(--neon-cyan);
+        }
+
+        .interactive-word.revealed {
+            color: var(--neon-gold);
+            font-weight: bold;
+            border-bottom: none;
+            text-shadow: 0 0 6px rgba(255, 204, 0, 0.4);
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.12);
+            margin: 1.8rem 0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 1px solid #44507a;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            margin-top: 1rem;
+            text-align: center;
+            border-radius: 6px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+
+        .flashcard-scene {
+            width: 100%;
+            height: 360px;
+            perspective: 1000px;
+            margin: 1.8rem 0;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: var(--radius-lg);
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            color: var(--text-main);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: var(--bg-dark);
+            border-color: var(--neon-purple);
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .flashcard-examples {
+            margin-top: 15px;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            text-align: left;
+            width: 100%;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            padding-top: 15px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .example-en {
+            color: var(--neon-gold);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .example-zh {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .sentence-dropzone, .word-bank {
+            min-height: 80px;
+            border: 1px dashed #4a5680;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--bg-dark);
+        }
+
+        .draggable-word {
+            padding: 10px 14px;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 6px;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: transform 0.15s, background 0.2s;
+            user-select: none;
+        }
+
+        .draggable-word:hover {
+            background: rgba(0, 229, 255, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .concept-display-box {
+            min-height: 170px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--neon-purple);
+            border-radius: 10px;
+            margin-bottom: 1.6rem;
+            padding: 1.5rem;
+        }
+
+        /* Non-blocking Toast Banner (replaces browser alert) */
+        #toast-banner {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(22, 26, 43, 0.96);
+            border: 1px solid var(--neon-cyan);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 30px rgba(0, 229, 255, 0.3);
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        #toast-banner.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.98); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: popIn 0.35s ease-out forwards;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+
+    <header class="header-banner">
+        <h1>Chronos // Time Travel</h1>
+        <div class="stats">
+            <span id="xp-counter">🧠 0 Mind Points</span>
+        </div>
+    </header>
+
+    <main id="app-container"></main>
+    <div id="toast-banner"></div>
+
+    <script>
+        // --- NON-BLOCKING TOAST NOTIFICATION ---
+        let toastTimer = null;
+        function showToast(message, accentColor) {
+            const toast = document.getElementById('toast-banner');
+            toast.textContent = message;
+            toast.style.borderColor = accentColor || 'var(--neon-cyan)';
+            toast.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2400);
+        }
+
+        // --- ANIMATED STAR / TIME-PARTICLE CANVAS ---
+        function initParticles() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particlesArray = [];
+            const colors = ['#00e5ff', '#9933ff', '#ffcc00', '#39ff14', '#ffffff'];
+
+            for (let i = 0; i < 60; i++) {
+                particlesArray.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2.2 + 0.6,
+                    speedY: Math.random() * 0.55 - 0.275,
+                    speedX: Math.random() * 0.55 - 0.275,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < particlesArray.length; i++) {
+                    const p = particlesArray[i];
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('particles');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // --- ACTIVITY 6: TIME CONCEPTS DATABASE ---
+        const timeConceptsDB = [
+            {
+                name: "Butterfly Effect",
+                category: "Cause & Consequence",
+                emoji: "🦋🌊⚡",
+                clue: "One tiny change in the past leads to massive, unpredictable results in the present."
+            },
+            {
+                name: "Time Loop",
+                category: "Temporal Trap",
+                emoji: "🔁⏳♾️",
+                clue: "A traveler is stuck repeating the exact same events over and over again."
+            },
+            {
+                name: "Fish Out of Water",
+                category: "Culture Shock",
+                emoji: "🐟🏜️😳",
+                clue: "A traveler arrives in a different era where they don't understand the clothes, language, or technology."
+            },
+            {
+                name: "Gravity & GPS",
+                category: "Real-World Physics",
+                emoji: "🛰️🌍⏱️",
+                clue: "Satellites orbiting high above Earth adjust clocks by 38.6 microseconds daily to stay accurate."
+            },
+            {
+                name: "Time Dilation",
+                category: "Relativity & Speed",
+                emoji: "🚀🌌⌛",
+                clue: "Moving at insanely fast speeds toward distant stars causes time to pass more slowly for the traveler."
+            },
+            {
+                name: "Historical Paradox",
+                category: "Changing History",
+                emoji: "📜❓💥",
+                clue: "Changing the past so much that the time traveler is never even born."
+            }
+        ];
+
+        const ALL_TIME_CONCEPTS = timeConceptsDB.map(c => c.name);
+
+        // --- ACTIVITY 7: TIME IDIOM DECODE DATABASE (12 IDIOMS) ---
+        const timeIdiomsDB = [
+            { idiom: "fish out of water", emoji: "🐟🏜️😵", meaning: "someone in an unfamiliar place" },
+            { idiom: "butterfly effect", emoji: "🦋➡️🌪️", meaning: "a small action causes huge results" },
+            { idiom: "in the nick of time", emoji: "⏰🏃💨", meaning: "just before it is too late" },
+            { idiom: "time flies", emoji: "⏱️🪽🚀", meaning: "time passes very quickly" },
+            { idiom: "turn back the clock", emoji: "⏪🕰️🔙", meaning: "return to an earlier time" },
+            { idiom: "kill time", emoji: "⏳📱🥱", meaning: "do something while waiting" },
+            { idiom: "ahead of its time", emoji: "🤖🔮⚡", meaning: "too modern for the present era" },
+            { idiom: "against the clock", emoji: "🏃‍♂️🆚⏱️", meaning: "working fast to beat a deadline" },
+            { idiom: "once in a blue moon", emoji: "1️⃣🌕🔵", meaning: "happening very rarely" },
+            { idiom: "better late than never", emoji: "🐢🏁🙂", meaning: "arriving late is better than not coming" },
+            { idiom: "out of time", emoji: "⌛🚫🛑", meaning: "no time left to finish" },
+            { idiom: "stand the test of time", emoji: "🏛️🕰️💪", meaning: "remain popular or strong for years" }
+        ];
+
+        const ALL_IDIOM_MEANINGS = timeIdiomsDB.map(i => i.meaning);
+
+        // --- COURSE DATA (BASIC & INTERMEDIATE) ---
+        const courseData = {
+            levels: [
+                {
+                    id: "basic",
+                    title: "Unit 6: Time Travel - Basic",
+                    description: "Explore time machines, the butterfly effect, time loops, and how GPS satellites experience real time travel.",
+                    image: "https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=800&q=80",
+                    reading: [
+                        {
+                            section: "Unit 6: Time Travel",
+                            text: "There is a famous quote: “We are all time travelers, journeying together into the future.” In other words, we are always moving into the future. But when most of us hear “time travel,” we think of changing the past or seeing the far future. Books, movies, TV shows, and even scientists have talked about time travel. It might happen through magic, science, or some strange mystery. In stories like Doraemon, a time machine makes it possible to visit the past or future. No matter how it works, people love imagining it."
+                        },
+                        {
+                            section: "Back to the Past - Changing History",
+                            text: "Many stories are about going back in time to change one important event. It might involve a famous person, a terrible war, or an important invention. Could changing one thing change the whole world? Some people in history caused many deaths. Would it be right to go back and stop them? What if you stopped that person when they were still a baby? In other stories, travelers try to stop a volcano or earthquake from hurting many people. If you knew what was coming, you could save many lives. Other stories imagine helping great people. If a smart inventor had better tools, could we have new technology sooner? What if you could save a good leader who died too young?"
+                        },
+                        {
+                            section: "Back to the Past - Changing Your Life",
+                            text: "As people get older, they often think about something they wish they had done differently. Maybe they never told someone they loved how they felt. Or maybe they want to save a family member or friend who died too young. They imagine one day they could change. Would fixing that moment make their whole life better? Some people would go back to become rich. If you knew which sports teams would win or which companies would make money, you could earn a lot without much work. You might also bring technology from today into the past. People could think you were the smartest person in the world!"
+                        },
+                        {
+                            section: "The Problems with Changing the Past - Butterfly Effect",
+                            text: "But changing the past rarely goes as planned. The “butterfly effect” means that one small change can lead to much bigger changes. If you save someone you love, what if they no longer love you when you return? Or what if someone else in your family dies instead? You might stop a war, but another person could start an even worse war. In some stories, a time traveler changes the past so much that they are never born! No one can know every result of changing the past. You could even bring a sickness from today that makes millions of people in the past sick. One small action could change everything."
+                        },
+                        {
+                            section: "Time Doesn't Want to Change",
+                            text: "Some stories make time seem alive, like it doesn’t want anyone to change it. Strange accidents or bad luck stop travelers from changing history. Time seems to push everything back to how it was before. Another idea is a “time loop.” You think you are changing the past, but everything you do has already happened. You are just living through the same events again, and you cannot change them."
+                        },
+                        {
+                            section: "Fish Out of Water",
+                            text: "In many stories, the time traveler feels like a fish out of water—someone in a place they don’t understand. Whether they go to the past or the future, life is different. People, clothes, and even languages change over time. Travelers often need to hide who they are. But how can you fit in when you don’t know how people live? In the future, would you understand how people talk or use their new technology? Even their phones might look strange to us. In the past, could you live without electricity? Would people think your clothes were strange? If you showed someone an iPhone 200 years ago, would they think you were a witch? Could you even talk to them?"
+                        },
+                        {
+                            section: "A Nice Vacation",
+                            text: "Not everyone wants to change history. Some just want to see it! Would you visit a time when dinosaurs walked the Earth? Or travel to the future to see new technology? Would humans still be there? Maybe we will look very different. We love time travel because we are curious. We want to see what the past was really like and what the future might bring. The best vacation might be a trip to another time, not another place."
+                        },
+                        {
+                            section: "Time Travel is Real",
+                            text: "We don’t have magic or machines that can take us to any time we want. But science has shown that time doesn’t pass at exactly the same speed everywhere. This even matters when you use GPS or Google Maps. Two things can change how fast time passes: speed and gravity. Gravity is the force that pulls us toward Earth. Earth also moves around the Sun at almost 30 kilometers per second. Moving very fast can affect time. This happens to satellites in space. GPS satellites travel high above Earth. Because gravity is weaker there, time passes about 45.8 microseconds faster for them each day. A microsecond is one millionth of a second. But GPS satellites also move very fast, around 14,000 kilometers per hour. Their speed makes time pass about 7.2 microseconds more slowly each day. Together, these two changes make a difference of about 38.6 microseconds a day. That sounds tiny, but if we don’t correct it, GPS could be wrong by more than 11 kilometers in one day! If people one day travel to stars far away, they may move so fast that time passes more slowly for them than for people on Earth. That would be a real kind of time travel into the future. We still don’t know how to visit the past, but we can keep asking “What if?” That’s why time travel stories will always be interesting."
+                        }
+                    ],
+                    vocabulary: [
+                        { word: "quote", chinese: "n. 引言；名言", icon: "💬", examples: [{ en: "There is a famous quote about time travelers.", zh: "有一句關於時間旅行者的著名名言。" }] },
+                        { word: "mystery", chinese: "n. 謎；神秘事物", icon: "🕵️", examples: [{ en: "Time travel might happen through some strange mystery.", zh: "時間旅行可能透過某種奇怪的神秘事物發生。" }] },
+                        { word: "invention", chinese: "n. 發明", icon: "💡", examples: [{ en: "The internet is an important invention in history.", zh: "網際網路是歷史上一項重要的發明。" }] },
+                        { word: "inventor", chinese: "n. 發明家", icon: "🔧", examples: [{ en: "If a smart inventor had better tools, we could have new technology sooner.", zh: "如果聰明的發明家有更好的工具，我們就能更早擁有新科技。" }] },
+                        { word: "leader", chinese: "n. 領導者", icon: "👑", examples: [{ en: "What if you could save a good leader who died too young?", zh: "如果你能拯救一位英年早逝的好領導者呢？" }] },
+                        { word: "butterfly effect", chinese: "n. 蝴蝶效應", icon: "🦋", examples: [{ en: "The butterfly effect means one small change can lead to bigger changes.", zh: "蝴蝶效應是指一個微小的改變可能導致更大的變化。" }] },
+                        { word: "strange", chinese: "adj. 奇怪的；陌生的", icon: "👽", examples: [{ en: "Strange accidents stop travelers from changing history.", zh: "奇怪的意外阻止旅行者改變歷史。" }] },
+                        { word: "time loop", chinese: "n. 時間循環", icon: "🔁", examples: [{ en: "In a time loop, you live through the same events again.", zh: "在時間循環中，你會重複經歷相同的事件。" }] },
+                        { word: "fish out of water", chinese: "phr. 格格不入的人；如魚離水", icon: "🐟", examples: [{ en: "The time traveler feels like a fish out of water in the past.", zh: "這位時間旅行者在過去覺得自己格格不入。" }] },
+                        { word: "curious", chinese: "adj. 好奇的", icon: "🔍", examples: [{ en: "We love time travel because we are curious about the future.", zh: "我們喜歡時間旅行，因為我們對未來感到好奇。" }] },
+                        { word: "gravity", chinese: "n. 重力；地心引力", icon: "🌍", examples: [{ en: "Two things can change how fast time passes: speed and gravity.", zh: "有兩件事能改變時間流逝的速度：速度和重力。" }] },
+                        { word: "force", chinese: "n. 力量；作用力", icon: "⚡", examples: [{ en: "Gravity is the force that pulls us toward Earth.", zh: "重力是把我們拉向地球的作用力。" }] },
+                        { word: "microseconds", chinese: "n. pl. 微秒", icon: "⏱️", examples: [{ en: "GPS clocks need to correct 38.6 microseconds each day.", zh: "GPS 時鐘每天需要校正 38.6 微秒。" }] }
+                    ],
+                    questions: [
+                        { type: "fill", q: "1. People might go back in time to help before a _________ or an earthquake.", answer: "volcano" },
+                        {
+                            type: "mc",
+                            q: "2. What is NOT one of the reasons people would travel back to the past?",
+                            options: [
+                                "They want to help someone they love.",
+                                "They want to be young again.",
+                                "They want to be rich.",
+                                "They want to see what happened in the past."
+                            ],
+                            answer: 1
+                        },
+                        {
+                            type: "mc",
+                            q: "3. What is the butterfly effect?",
+                            options: [
+                                "A tiny change can lead to much bigger changes.",
+                                "Butterflies can travel through time.",
+                                "Time always fixes itself back to normal.",
+                                "You can only travel to the future."
+                            ],
+                            answer: 0
+                        },
+                        { type: "fill", q: "4. How many total microseconds does GPS time travel in one day? _________ microseconds a day.", answer: "38.6" }
+                    ],
+                    unscrambleWords: ["mystery", "invention", "inventor", "leader", "strange", "curious", "gravity", "microseconds"],
+                    sentences: [
+                        "We are all time travelers, journeying together into the future.",
+                        "One small change can lead to much bigger changes.",
+                        "Gravity is the force that pulls us toward Earth."
+                    ],
+                    synonyms: [
+                        { word: "common", synonym: "usual" },
+                        { word: "strange", synonym: "unusual" },
+                        { word: "curious", synonym: "interested" },
+                        { word: "huge", synonym: "giant" },
+                        { word: "force", synonym: "power" },
+                        { word: "tiny", synonym: "small" },
+                        { word: "smart", synonym: "clever" },
+                        { word: "leader", synonym: "ruler" },
+                        { word: "mystery", synonym: "puzzle" },
+                        { word: "fast", synonym: "quick" }
+                    ]
+                },
+                {
+                    id: "intermediate",
+                    title: "Unit 6: Time Travel - Intermediate",
+                    description: "Dive deeper into historical paradoxes, the butterfly effect, cultural shock, and the physics of GPS satellites.",
+                    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80",
+                    reading: [
+                        {
+                            section: "Unit 6: Time Travel",
+                            text: "There is a famous quote: “We are all time travelers, journeying together into the future.” However, when most of us hear “time travel,” we think about changing the past or seeing the distant future. Books, movies, TV shows, and scientists have all explored time travel. Whether it happens through magic, amazing science, or an unexplained mystery, the idea of traveling through time fascinates us. In stories like Doraemon, a time machine makes it possible to visit the past or future. But what would really happen if we could do that?"
+                        },
+                        {
+                            section: "Back to the Past - Changing History",
+                            text: "A lot of stories imagine going back in time to change an important moment in history. These moments often involve famous people, terrible wars, or great scientific inventions. The idea is that changing one event could change the path of the whole world. Some terrible people in history have caused many deaths. Would it be okay to go back and stop one of them? What if you stopped them when they were still a baby? Time travel stories often ask whether you should stop an emperor, king, or ruler before they start a war. Other stories focus on disasters, like volcanoes or earthquakes. If you knew one was coming, you could save many lives. Another idea is helping great people do even more good. If one of the smartest people in history had help with their technology, could humanity have advanced sooner? Or what if a great leader who could have brought peace died too early, and you could save them?"
+                        },
+                        {
+                            section: "Back to the Past - Changing Your Life",
+                            text: "As people get older, they often have something they wish they had done differently. Maybe they have one giant regret, like missing their chance at love because they never told someone how they felt. Or maybe they want to save a family member or friend who died too young. They imagine one moment that could change everything. If they could fix it, would the rest of their lives be better? Another thing people often want to change is their wealth. They could use what they know about the future to make money and never worry about working again. If you knew which sports teams would win or which companies would make a lot of money, you could easily become rich. You could also go back in time and look like the smartest person who ever lived. If you brought today’s technology into the past, you might become the most famous genius in the world."
+                        },
+                        {
+                            section: "The Problems with Changing the Past - Butterfly Effect",
+                            text: "No matter why someone travels to the past, things almost never go as planned. The “butterfly effect” describes how even a tiny change could have huge results. Change the past, and the present might be different too. If you save someone you love, maybe they no longer love you when you return. Or maybe someone else in your family has died, even though they were healthy before. Maybe you prevent a war 100 years ago, only for someone else to start an even worse war. In some stories, a traveler changes the past so much that they are never even born. When someone travels to the past, they can’t know every change they might cause. Even a disease they carry from today could make millions of people sick or kill them. With the butterfly effect, one small action could change the world we know."
+                        },
+                        {
+                            section: "Time Doesn't Want to Change",
+                            text: "In many time travel stories, time almost seems alive and doesn’t want to change. Travelers may face terrible luck or strange accidents that stop them from changing history. Time tries to fix their mistakes and return to its original path. Another common idea is a time loop. A traveler thinks they are changing the past, but everything they do has already happened. They are stuck repeating the same history. Whatever they do was always going to happen."
+                        },
+                        {
+                            section: "Fish Out of Water",
+                            text: "One thing many time travel stories have in common is that the traveler is a fish out of water. Whether they go to the past or the future, they are somewhere they don’t belong. Societies, cultures, and even languages change quickly. Travelers may need to hide who they are, but that’s hard when they don’t know how to live in a different time. In the future, would you know the right words to use or understand the new technology? Even a future cell phone, if people still use them, might be impossible to understand. In the past, could you live without electricity? What about your clothes? Would they look strange to the people around you? Would someone 200 years ago think you were a witch if you showed them an iPhone? Could you even talk to them?"
+                        },
+                        {
+                            section: "A Nice Vacation",
+                            text: "Many people imagine visiting a distant time. Some want to see giant dinosaurs walking the Earth. Others want to see what science and technology will bring in the future. Will humans still be around? Will another animal take our place, or will we change so much that we no longer recognize ourselves? Part of our love of time travel comes from curiosity. We want to see what the past was really like and how close our guesses about the future are. For some of us, the ultimate vacation wouldn’t be to another place, but another time."
+                        },
+                        {
+                            section: "Time Travel is Real",
+                            text: "We might not have machines or magic that let us visit any time we want, but science has shown us something surprising: time doesn’t pass at exactly the same speed everywhere. If you use Google Maps or GPS in your car, these tiny differences in time are already part of how they work. Scientists know that speed and gravity affect how we experience time. Earth travels around the Sun at 107,208 kilometers per hour, or almost 30 kilometers per second. How fast you move affects how time passes for you. Gravity is the force that keeps us here on Earth. It pulls things down at about 9.8 meters per second every second. The “S” in GPS stands for “satellite.” These satellites orbit Earth, far above us, where gravity is only about 5.4% as strong as it is on the ground. Because of this difference, time passes about 45.8 microseconds faster each day for the satellites (0.0000458 seconds). GPS satellites also travel around Earth at about 14,000 kilometers per hour. Because of their speed, time passes about 7.2 microseconds more slowly for them each day. Add the effects of gravity (+45.8 μs) and speed (−7.2 μs), and GPS clocks need to account for a difference of 38.6 microseconds each day. That is just 0.0000386 seconds, but without this correction, GPS locations could be off by more than 11 kilometers every day. We expect GPS to find us within a few meters, so those tiny changes in time really matter. If humanity ever travels to distant stars, we’ll need insanely fast speeds, and those speeds could cause real time travel into the future. For now, that is the only kind of time travel we know, but the idea that time can change is fascinating. Our imaginations will always ask “What if?” about the past, present, and future. That’s why time travel stories aren’t going away anytime soon."
+                        }
+                    ],
+                    vocabulary: [
+                        { word: "quote", chinese: "n. 引言；名言", icon: "💬", examples: [{ en: "There is a famous quote about journeying into the future.", zh: "有一句關於邁向未來的著名名言。" }] },
+                        { word: "fascinates", chinese: "v. 使著迷；吸引", icon: "✨", examples: [{ en: "The idea of traveling through time fascinates us.", zh: "穿越時空的想法深深吸引著我們。" }] },
+                        { word: "mystery", chinese: "n. 謎；神秘事物", icon: "🕵️", examples: [{ en: "Time travel could happen through an unexplained mystery.", zh: "時間旅行可能透過一個無法解釋的謎團發生。" }] },
+                        { word: "inventions", chinese: "n. pl. 發明", icon: "💡", examples: [{ en: "Many stories involve great scientific inventions.", zh: "許多故事都涉及偉大的科學發明。" }] },
+                        { word: "disasters", chinese: "n. pl. 災害；災難", icon: "🌋", examples: [{ en: "Other stories focus on disasters, like volcanoes or earthquakes.", zh: "其他故事聚焦於災難，例如火山或地震。" }] },
+                        { word: "humanity", chinese: "n. 人類", icon: "🌐", examples: [{ en: "Could humanity have advanced sooner with better technology?", zh: "如果擁有更好的科技，人類會更早進步嗎？" }] },
+                        { word: "regret", chinese: "n. 遺憾；後悔", icon: "😔", examples: [{ en: "Maybe they have one giant regret from their youth.", zh: "也許他們對年輕時有一件巨大的遺憾。" }] },
+                        { word: "wealth", chinese: "n. 財富", icon: "💰", examples: [{ en: "Another thing people often want to change is their wealth.", zh: "人們經常想改變的另一件事是他們的財富。" }] },
+                        { word: "genius", chinese: "n. 天才", icon: "🧠", examples: [{ en: "You might become the most famous genius in the world.", zh: "你可能會成為世界上最著名的天才。" }] },
+                        { word: "butterfly effect", chinese: "n. 蝴蝶效應", icon: "🦋", examples: [{ en: "With the butterfly effect, one small action could change the world.", zh: "在蝴蝶效應下，一個小舉動就可能改變世界。" }] },
+                        { word: "prevent", chinese: "v. 阻止；預防", icon: "🛡️", examples: [{ en: "Maybe you prevent a war 100 years ago.", zh: "也許你阻止了一百年前的一場戰爭。" }] },
+                        { word: "time loop", chinese: "n. 時間循環", icon: "🔁", examples: [{ en: "In a time loop, travelers are stuck repeating the same history.", zh: "在時間循環中，旅行者被困在重複相同的歷史裡。" }] },
+                        { word: "fish out of water", chinese: "phr. 格格不入的人", icon: "🐟", examples: [{ en: "The time traveler is a fish out of water in a new era.", zh: "時間旅行者在新的時代裡是個格格不入的人。" }] },
+                        { word: "curiosity", chinese: "n. 好奇心", icon: "🔍", examples: [{ en: "Part of our love of time travel comes from curiosity.", zh: "我們對時間旅行的熱愛部分來自好奇心。" }] },
+                        { word: "ultimate", chinese: "adj. 終極的；最棒的", icon: "🏆", examples: [{ en: "The ultimate vacation wouldn't be to another place, but another time.", zh: "終極假期不是去另一個地方，而是去另一個時代。" }] },
+                        { word: "gravity", chinese: "n. 重力；地心引力", icon: "🌍", examples: [{ en: "Gravity is the force that keeps us here on Earth.", zh: "重力是讓我們留在地球上的力量。" }] },
+                        { word: "satellite", chinese: "n. 衛星", icon: "🛰️", examples: [{ en: "GPS satellites orbit Earth far above us.", zh: "GPS 衛星在我們上方遙遠處繞著地球運行。" }] },
+                        { word: "microseconds", chinese: "n. pl. 微秒", icon: "⏱️", examples: [{ en: "GPS clocks account for a difference of 38.6 microseconds each day.", zh: "GPS 時鐘每天需要計算 38.6 微秒的差異。" }] }
+                    ],
+                    questions: [
+                        { type: "fill", q: "1. What are the two disasters (災害) listed in the article? They are _________ and earthquakes.", answer: "volcanoes" },
+                        {
+                            type: "mc",
+                            q: "2. What is NOT one of the reasons people would travel back to the past?",
+                            options: [
+                                "They want to help someone they love.",
+                                "They want to be young again.",
+                                "They want to be rich.",
+                                "They want to see what happened in the past."
+                            ],
+                            answer: 1
+                        },
+                        {
+                            type: "mc",
+                            q: "3. What does the butterfly effect mean?",
+                            options: [
+                                "A tiny change can have huge effects.",
+                                "Time repeats itself in a loop.",
+                                "Gravity makes clocks run slower.",
+                                "Travelers cannot fit into the past."
+                            ],
+                            answer: 0
+                        },
+                        { type: "fill", q: "4. How many total microseconds does GPS time travel in one day? _________ microseconds.", answer: "38.6" }
+                    ],
+                    unscrambleWords: ["fascinates", "inventions", "disasters", "humanity", "butterfly", "curiosity", "satellite", "microseconds"],
+                    sentences: [
+                        "We are all time travelers, journeying together into the future.",
+                        "Scientists know that speed and gravity affect how we experience time.",
+                        "With the butterfly effect, one small action could change the world we know."
+                    ],
+                    synonyms: [
+                        { word: "fascinates", synonym: "amazes" },
+                        { word: "distant", synonym: "far" },
+                        { word: "terrible", synonym: "horrible" },
+                        { word: "wealth", synonym: "riches" },
+                        { word: "prevent", synonym: "stop" },
+                        { word: "strange", synonym: "unusual" },
+                        { word: "ultimate", synonym: "greatest" },
+                        { word: "insanely", synonym: "extremely" },
+                        { word: "tiny", synonym: "minute" },
+                        { word: "ruler", synonym: "leader" }
+                    ]
+                }
+            ]
+        };
+
+        // --- APPLICATION STATE ---
+        const appContainer = document.getElementById('app-container');
+        let currentLevel = null;
+        let userXP = parseInt(localStorage.getItem('timeLabXP'), 10) || 0;
+
+        let currentReadingIndex = 0;
+        let currentQuestionIndex = 0;
+        let currentFlashcardIndex = 0;
+        let currentVocabUnscrambleIndex = 0;
+        let currentSentenceIndex = 0;
+        let conceptChallengeIndex = 0;
+        let idiomChallengeIndex = 0;
+        let synonymChallengeIndex = 0;
+
+        let wordsToFind = [];
+        let activeConcepts = [];
+        let activeIdioms = [];
+        let activeSynonyms = [];
+
+        function init() {
+            initParticles();
+            updateXP(0);
+            renderHome();
+        }
+
+        function updateXP(amount) {
+            userXP += amount;
+            localStorage.setItem('timeLabXP', userXP);
+            document.getElementById('xp-counter').textContent = `🧠 ${userXP} Mind Points`;
+        }
+
+        function escapeSingleQuotes(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        }
+
+        // --- HOME & LEVEL MENU ---
+        function renderHome() {
+            appContainer.innerHTML = `
+                <div class="card-grid animate-pop">
+                    ${courseData.levels.map(level => `
+                        <div class="level-card" onclick="startLevel('${level.id}')">
+                            <img src="${level.image}" alt="${level.title}" class="level-image" onerror="this.src='https://placehold.co/800x400/161a2b/00e5ff?text=Time+Travel'">
+                            <h2>${level.title}</h2>
+                            <p style="color: var(--text-muted); line-height: 1.5;">${level.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function startLevel(levelId) {
+            currentLevel = courseData.levels.find(l => l.id === levelId);
+            renderMenu();
+        }
+
+        function renderMenu() {
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderHome()">← Switch Level</button>
+                <h1 style="text-align:center; font-family:'Playfair Display', serif; color: var(--neon-cyan); letter-spacing: 1px;">${currentLevel.title.toUpperCase()}</h1>
+                <div class="card-grid animate-pop">
+                    <div class="level-card" onclick="startReading()">
+                        <div style="font-size: 3rem;">📖</div>
+                        <h3>Reading</h3>
+                    </div>
+                    <div class="level-card" onclick="startQuiz()">
+                        <div style="font-size: 3rem;">❓</div>
+                        <h3>Knowledge Check</h3>
+                    </div>
+                    <div class="level-card" onclick="startFlashcards()">
+                        <div style="font-size: 3rem;">🎴</div>
+                        <h3>Vocab Flashcards</h3>
+                    </div>
+                    <div class="level-card" onclick="startVocabUnscramble()">
+                        <div style="font-size: 3rem;">🔀</div>
+                        <h3>Unscramble</h3>
+                    </div>
+                    <div class="level-card" onclick="startSentenceUnscramble()">
+                        <div style="font-size: 3rem;">🧩</div>
+                        <h3>Sentence Builder</h3>
+                    </div>
+                    <div class="level-card" onclick="startSynonymMatch()">
+                        <div style="font-size: 3rem;">🔗</div>
+                        <h3>Synonym Match</h3>
+                    </div>
+                    <div class="level-card" onclick="startConceptChallenge()">
+                        <div style="font-size: 3rem;">⏳</div>
+                        <h3>Time Concepts</h3>
+                    </div>
+                    <div class="level-card" onclick="startIdiomChallenge()">
+                        <div style="font-size: 3rem;">🕰️</div>
+                        <h3>Time Idiom Decode</h3>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ACTIVITY 1: READING WITH PAGINATION & VOCAB HIGHLIGHTING ---
+        function startReading() {
+            currentReadingIndex = 0;
+            renderReading();
+        }
+
+        function renderReading() {
+            wordsToFind = currentLevel.vocabulary.map(v => v.word.toLowerCase());
+            const cloudHTML = currentLevel.vocabulary.map(v =>
+                `<span class="cloud-word" id="cloud-${v.word.replace(/\s+/g, '-').toLowerCase()}">${v.word}</span>`
+            ).join('');
+
+            const isFirst = currentReadingIndex === 0;
+            const isLast = currentReadingIndex === currentLevel.reading.length - 1;
+            const currentPassage = currentLevel.reading[currentReadingIndex];
+
+            const interactiveText = currentPassage.text.replace(/([a-zA-Z0-9'-]+)/g, '<span class="interactive-word" onclick="checkWord(this)">$1</span>');
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size: 0.9rem;">
+                        <span>SECTION ${currentReadingIndex + 1} OF ${currentLevel.reading.length}</span>
+                    </div>
+
+                    <h2 style="margin-top:0; color: #fff;">Find &amp; Highlight Key Vocab</h2>
+                    <div class="word-cloud">
+                        ${cloudHTML}
+                    </div>
+
+                    <h2 style="color: var(--neon-cyan);">❖ ${currentPassage.section}</h2>
+                    <p style="font-size: 1.12rem; line-height: 1.85;">${interactiveText}</p>
+                    <hr>
+
+                    <div class="nav-buttons">
+                        <button class="action-btn" style="width:48%;" onclick="navigateReading(-1)" ${isFirst ? 'disabled' : ''}>Previous</button>
+                        ${isLast
+                            ? `<button class="action-btn btn-correct" style="width:48%;" onclick="updateXP(25); showToast('Reading Complete! +25 Mind Points', 'var(--neon-green)'); startQuiz();">Complete Reading (+25 MP)</button>`
+                            : `<button class="action-btn" style="width:48%;" onclick="navigateReading(1)">Next</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function navigateReading(direction) {
+            currentReadingIndex += direction;
+            renderReading();
+        }
+
+        function checkWord(element) {
+            const clickedWord = element.innerText.toLowerCase().replace(/^['-]+|['-]+$/g, '').trim();
+            const matchedVocab = wordsToFind.find(word => {
+                if (word === clickedWord) return true;
+                const phraseWords = word.split(' ');
+                return phraseWords.includes(clickedWord) && clickedWord.length > 2;
+            });
+
+            if (matchedVocab) {
+                element.classList.add('revealed');
+                const cloudEl = document.getElementById(`cloud-${matchedVocab.replace(/\s+/g, '-')}`);
+                if (cloudEl && !cloudEl.classList.contains('found')) {
+                    cloudEl.classList.add('found');
+                    updateXP(5);
+                    showToast(`Found "${matchedVocab}"! +5 MP`, 'var(--neon-cyan)');
+                }
+            } else {
+                element.classList.add('shake');
+                setTimeout(() => element.classList.remove('shake'), 350);
+            }
+        }
+
+        // --- ACTIVITY 2: KNOWLEDGE CHECK QUIZ ---
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            renderQuiz();
+        }
+
+        function renderQuiz() {
+            const qData = currentLevel.questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === currentLevel.questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            let interactionHTML = '';
+
+            if (qData.type === 'mc') {
+                interactionHTML = `
+                    <div id="mc-options" style="display:flex; flex-direction:column; gap:10px; margin-top: 1.5rem;">
+                        ${qData.options.map((opt, index) => `
+                            <button class="action-btn" style="text-align: left; text-transform:none; padding:1rem;"
+                            onclick="checkQuizAnswer(this, ${index}, ${qData.answer}, 'mc')">${opt}</button>
+                        `).join('')}
+                    </div>`;
+            } else if (qData.type === 'fill') {
+                interactionHTML = `
+                    <div style="margin-top: 1.5rem;">
+                        <input type="text" id="fill-input" placeholder="Type answer here..." autocomplete="off">
+                        <button class="action-btn" style="margin-top:1rem;" onclick="checkQuizAnswer(document.getElementById('fill-input'), null, '${escapeSingleQuotes(qData.answer)}', 'fill')">Submit Answer</button>
+                    </div>`;
+            }
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size: 0.9rem;">
+                        <span>QUESTION ${currentQuestionIndex + 1} OF ${currentLevel.questions.length}</span>
+                    </div>
+                    <p style="font-size: 1.2rem; font-weight: bold; color: var(--text-main); line-height:1.5;">${qData.q}</p>
+                    ${interactionHTML}
+
+                    <div class="nav-buttons">
+                        <button class="action-btn" style="width:48%;" onclick="navigateQuiz(-1)" ${isFirst ? 'disabled' : ''}>Previous</button>
+                        <button class="action-btn" style="width:48%;" onclick="navigateQuiz(1)">${isLast ? 'Finish' : 'Next'}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkQuizAnswer(element, selectedIndex, correctAnswer, type) {
+            if (type === 'mc') {
+                const allButtons = element.parentElement.querySelectorAll('button');
+                allButtons.forEach(btn => btn.style.pointerEvents = 'none');
+
+                if (selectedIndex === correctAnswer) {
+                    element.classList.add('btn-correct');
+                    updateXP(15);
+                    showToast('Correct! +15 Mind Points', 'var(--neon-green)');
+                } else {
+                    element.classList.add('btn-wrong', 'shake');
+                    allButtons[correctAnswer].classList.add('btn-correct');
+                    showToast('Not quite! Check the green highlight.', 'var(--neon-red)');
+                }
+            } else if (type === 'fill') {
+                const userAnswer = element.value.trim().toLowerCase();
+                const actualAnswer = String(correctAnswer).toLowerCase();
+                if (userAnswer && (userAnswer === actualAnswer || userAnswer.includes(actualAnswer))) {
+                    element.style.borderColor = 'var(--neon-green)';
+                    element.style.color = 'var(--neon-green)';
+                    updateXP(15);
+                    showToast('Correct! +15 Mind Points', 'var(--neon-green)');
+                } else {
+                    element.style.borderColor = 'var(--neon-red)';
+                    element.classList.add('shake');
+                    showToast('Try again!', 'var(--neon-red)');
+                    setTimeout(() => element.classList.remove('shake'), 400);
+                }
+            }
+        }
+
+        function navigateQuiz(direction) {
+            currentQuestionIndex += direction;
+            if (currentQuestionIndex >= currentLevel.questions.length) {
+                showToast('Knowledge Check Completed!', 'var(--neon-gold)');
+                renderMenu();
+            } else {
+                renderQuiz();
+            }
+        }
+
+        // --- ACTIVITY 3: VOCAB FLASHCARDS (3D FLIP) ---
+        function startFlashcards() {
+            currentFlashcardIndex = 0;
+            renderFlashcardUI();
+        }
+
+        function renderFlashcardUI() {
+            const vocab = currentLevel.vocabulary;
+            const currentCard = vocab[currentFlashcardIndex];
+
+            let examplesHTML = '';
+            if (currentCard.examples && currentCard.examples.length > 0) {
+                examplesHTML = `<div class="flashcard-examples">` +
+                    currentCard.examples.map(ex => `
+                        <div class="example-item">
+                            <div class="example-en">${ex.en}</div>
+                            <div class="example-zh">${ex.zh}</div>
+                        </div>
+                    `).join('') + `</div>`;
+            }
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="text-align:center;">
+                    <h2 style="margin-top:0;">Vocabulary Flashcards</h2>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">CARD ${currentFlashcardIndex + 1} OF ${vocab.length} • TAP CARD TO FLIP</p>
+
+                    <div class="flashcard-scene" onclick="flipCard(this)">
+                        <div class="flashcard">
+                            <div class="flashcard-face flashcard-front">
+                                <div style="font-size: 3rem; margin-bottom: 12px;">${currentCard.icon}</div>
+                                <div>${currentCard.word}</div>
+                            </div>
+                            <div class="flashcard-face flashcard-back">
+                                <div style="font-size: 2.8rem; margin: 12px 0 6px 0;">${currentCard.icon}</div>
+                                <div style="font-size: 1.5rem; margin-bottom: 10px; color: var(--neon-cyan);">${currentCard.chinese}</div>
+                                ${examplesHTML}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-buttons">
+                        <button class="action-btn" style="width:48%;" onclick="navigateFlashcard(-1)">Previous</button>
+                        <button class="action-btn" style="width:48%;" onclick="navigateFlashcard(1)">Next</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function flipCard(sceneElement) {
+            const card = sceneElement.querySelector('.flashcard');
+            card.classList.toggle('is-flipped');
+        }
+
+        function navigateFlashcard(direction) {
+            const vocab = currentLevel.vocabulary;
+            currentFlashcardIndex += direction;
+            if (currentFlashcardIndex < 0) currentFlashcardIndex = vocab.length - 1;
+            if (currentFlashcardIndex >= vocab.length) currentFlashcardIndex = 0;
+            renderFlashcardUI();
+        }
+
+        // --- ACTIVITY 4: UNSCRAMBLE VOCAB ---
+        function startVocabUnscramble() {
+            currentVocabUnscrambleIndex = 0;
+            renderVocabUnscramble();
+        }
+
+        function scrambleString(str) {
+            const arr = str.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            const scrambled = arr.join('');
+            if (scrambled === str && str.length > 3) return scrambleString(str);
+            return scrambled;
+        }
+
+        function renderVocabUnscramble() {
+            const wordsList = currentLevel.unscrambleWords;
+            const originalWord = wordsList[currentVocabUnscrambleIndex];
+            const scrambledWord = scrambleString(originalWord);
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="text-align:center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
+                        <span>WORD ${currentVocabUnscrambleIndex + 1} OF ${wordsList.length}</span>
+                    </div>
+                    <h2 style="margin-top:0;">Unscramble the Word</h2>
+
+                    <div style="font-size: 2.3rem; font-weight: bold; letter-spacing: 5px; color: var(--neon-gold); margin: 1.8rem 0; font-family: 'Playfair Display', serif;">
+                        ${scrambledWord.toUpperCase()}
+                    </div>
+
+                    <input type="text" id="unscramble-input" placeholder="Type correct word..." autocomplete="off">
+
+                    <button class="action-btn" onclick="checkVocabUnscramble('${escapeSingleQuotes(originalWord)}')">Check</button>
+                </div>
+            `;
+        }
+
+        function checkVocabUnscramble(correctWord) {
+            const inputEl = document.getElementById('unscramble-input');
+            const userWord = inputEl.value.trim().toLowerCase();
+
+            if (userWord === correctWord.toLowerCase()) {
+                inputEl.style.borderColor = 'var(--neon-green)';
+                inputEl.style.color = 'var(--neon-green)';
+                updateXP(15);
+                showToast('Correct! +15 MP', 'var(--neon-green)');
+                setTimeout(() => {
+                    currentVocabUnscrambleIndex++;
+                    if (currentVocabUnscrambleIndex >= currentLevel.unscrambleWords.length) {
+                        updateXP(50);
+                        showToast('Unscramble Complete! +50 Bonus MP', 'var(--neon-gold)');
+                        renderMenu();
+                    } else {
+                        renderVocabUnscramble();
+                    }
+                }, 750);
+            } else {
+                inputEl.style.borderColor = 'var(--neon-red)';
+                inputEl.classList.add('shake');
+                showToast('Try again!', 'var(--neon-red)');
+                setTimeout(() => inputEl.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- ACTIVITY 5: SENTENCE BUILDER ---
+        function startSentenceUnscramble() {
+            currentSentenceIndex = 0;
+            renderSentenceUnscramble();
+        }
+
+        function renderSentenceUnscramble() {
+            const sentencesList = currentLevel.sentences;
+            const sentence = sentencesList[currentSentenceIndex];
+            const words = sentence.split(' ');
+
+            const scrambledWords = [...words];
+            for (let i = scrambledWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [scrambledWords[i], scrambledWords[j]] = [scrambledWords[j], scrambledWords[i]];
+            }
+
+            const wordsHTML = scrambledWords.map((w, i) =>
+                `<div class="draggable-word" id="word-${i}" onclick="moveWordOnClick(this)">${w}</div>`
+            ).join('');
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
+                        <span>SENTENCE ${currentSentenceIndex + 1} OF ${sentencesList.length}</span>
+                    </div>
+                    <h2 style="margin-top:0;">Build the Sentence</h2>
+                    <p style="color:var(--text-muted);">Click words in the correct order.</p>
+
+                    <div id="sentence-answer-zone" class="sentence-dropzone"></div>
+                    <div id="sentence-word-bank" class="word-bank">${wordsHTML}</div>
+
+                    <button class="action-btn" onclick="checkSentenceUnscramble('${escapeSingleQuotes(sentence)}')">Submit</button>
+                </div>
+            `;
+        }
+
+        function moveWordOnClick(element) {
+            const answerZone = document.getElementById('sentence-answer-zone');
+            const wordBank = document.getElementById('sentence-word-bank');
+
+            if (element.parentNode.id === 'sentence-word-bank') {
+                answerZone.appendChild(element);
+            } else {
+                wordBank.appendChild(element);
+            }
+        }
+
+        function checkSentenceUnscramble(correctSentence) {
+            const answerZone = document.getElementById('sentence-answer-zone');
+            const currentWords = Array.from(answerZone.children).map(el => el.innerText);
+            const userSentence = currentWords.join(' ');
+
+            if (userSentence === correctSentence) {
+                answerZone.style.borderColor = 'var(--neon-green)';
+                updateXP(25);
+                showToast('Sentence Built! +25 MP', 'var(--neon-green)');
+                setTimeout(() => {
+                    currentSentenceIndex++;
+                    if (currentSentenceIndex >= currentLevel.sentences.length) {
+                        updateXP(50);
+                        showToast('Sentence Builder Complete! +50 Bonus MP', 'var(--neon-gold)');
+                        renderMenu();
+                    } else {
+                        renderSentenceUnscramble();
+                    }
+                }, 900);
+            } else {
+                answerZone.style.borderColor = 'var(--neon-red)';
+                answerZone.classList.add('shake');
+                showToast('Order is not quite right. Try again!', 'var(--neon-red)');
+                setTimeout(() => answerZone.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- ACTIVITY 6: TIME CONCEPTS ---
+        function startConceptChallenge() {
+            conceptChallengeIndex = 0;
+            activeConcepts = [...timeConceptsDB].sort(() => 0.5 - Math.random());
+            renderConceptChallenge();
+        }
+
+        function renderConceptChallenge() {
+            if (conceptChallengeIndex >= activeConcepts.length) {
+                updateXP(40);
+                showToast('Time Concepts Complete! +40 Bonus MP', 'var(--neon-gold)');
+                return renderMenu();
+            }
+
+            const currentConcept = activeConcepts[conceptChallengeIndex];
+            const pool = ALL_TIME_CONCEPTS.filter(name => name !== currentConcept.name).sort(() => 0.5 - Math.random());
+            const options = [currentConcept.name, ...pool.slice(0, 3)].sort(() => 0.5 - Math.random());
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
+                        <span>CONCEPT ${conceptChallengeIndex + 1} OF ${activeConcepts.length}</span>
+                    </div>
+
+                    <div style="background: rgba(0, 229, 255, 0.08); padding: 0.7rem; border-radius: 6px; margin-bottom: 1.4rem; border-left: 3px solid var(--neon-cyan);">
+                        <span style="color: var(--neon-cyan); font-size: 1rem; font-weight:bold; text-transform: uppercase;">${currentConcept.category}</span>
+                    </div>
+
+                    <div id="concept-feedback-zone" class="concept-display-box">
+                        <span style="font-size: 3.6rem; user-select: none; margin-bottom: 12px;">${currentConcept.emoji}</span>
+                        <p style="margin: 0; color: var(--text-main); font-size: 1.1rem; max-width: 600px;">${currentConcept.clue}</p>
+                    </div>
+
+                    <h3 style="color: #fff; margin-bottom: 1.2rem;">Identify this time-travel concept:</h3>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.8rem; font-size: 0.95rem;"
+                            onclick="checkConceptGuess(this, '${escapeSingleQuotes(opt)}', '${escapeSingleQuotes(currentConcept.name)}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkConceptGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(20);
+                showToast('Correct Concept! +20 MP', 'var(--neon-green)');
+                setTimeout(() => {
+                    conceptChallengeIndex++;
+                    renderConceptChallenge();
+                }, 950);
+            } else {
+                btn.classList.add('btn-wrong', 'shake');
+                const feedbackZone = document.getElementById('concept-feedback-zone');
+                feedbackZone.innerHTML = `
+                    <div style="color: var(--neon-red); font-size: 1.3rem; font-weight: bold; font-family: 'Playfair Display', serif;">
+                        Incorrect! This matches: ${correct}.
+                    </div>`;
+                setTimeout(() => {
+                    conceptChallengeIndex++;
+                    renderConceptChallenge();
+                }, 1800);
+            }
+        }
+
+        // --- ACTIVITY 7: TIME IDIOM DECODE ---
+        function startIdiomChallenge() {
+            idiomChallengeIndex = 0;
+            activeIdioms = [...timeIdiomsDB].sort(() => 0.5 - Math.random());
+            renderIdiomChallenge();
+        }
+
+        function renderIdiomChallenge() {
+            if (idiomChallengeIndex >= activeIdioms.length) {
+                updateXP(50);
+                showToast('Time Idiom Decode Complete! +50 Bonus MP', 'var(--neon-gold)');
+                return renderMenu();
+            }
+
+            const currentIdiom = activeIdioms[idiomChallengeIndex];
+            const pool = ALL_IDIOM_MEANINGS.filter(m => m !== currentIdiom.meaning).sort(() => 0.5 - Math.random());
+            const options = [currentIdiom.meaning, ...pool.slice(0, 3)].sort(() => 0.5 - Math.random());
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
+                        <span>IDIOM ${idiomChallengeIndex + 1} OF ${activeIdioms.length}</span>
+                    </div>
+
+                    <div id="idiom-feedback-zone" class="concept-display-box" style="border-color: var(--neon-cyan);">
+                        <span style="font-size: 3.8rem; user-select: none; margin-bottom: 14px;">${currentIdiom.emoji}</span>
+                        <h2 style="margin: 0; color: var(--neon-gold); font-family: 'Playfair Display', serif; text-transform: lowercase;">"${currentIdiom.idiom}"</h2>
+                    </div>
+
+                    <h3 style="color: #fff; margin-bottom: 1.2rem;">What does this idiom mean?</h3>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.7rem; font-size: 0.9rem; line-height: 1.3; text-transform: none;"
+                            onclick="checkIdiomGuess(this, '${escapeSingleQuotes(opt)}', '${escapeSingleQuotes(currentIdiom.meaning)}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkIdiomGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(20);
+                showToast('Decoded! +20 MP', 'var(--neon-green)');
+                setTimeout(() => {
+                    idiomChallengeIndex++;
+                    renderIdiomChallenge();
+                }, 950);
+            } else {
+                btn.classList.add('btn-wrong', 'shake');
+                const feedbackZone = document.getElementById('idiom-feedback-zone');
+                feedbackZone.innerHTML = `
+                    <span style="display: block; color: var(--neon-red); font-size: 1.2rem; font-weight: bold; font-family: 'Playfair Display', serif;">
+                        Incorrect! It means: ${correct}.
+                    </span>`;
+                setTimeout(() => {
+                    idiomChallengeIndex++;
+                    renderIdiomChallenge();
+                }, 1800);
+            }
+        }
+
+        // --- ACTIVITY 8: SYNONYM MATCH ---
+        function startSynonymMatch() {
+            synonymChallengeIndex = 0;
+            activeSynonyms = [...currentLevel.synonyms].sort(() => 0.5 - Math.random());
+            renderSynonymMatch();
+        }
+
+        function renderSynonymMatch() {
+            if (synonymChallengeIndex >= activeSynonyms.length) {
+                updateXP(50);
+                showToast('Synonym Match Complete! +50 Bonus MP', 'var(--neon-gold)');
+                return renderMenu();
+            }
+
+            const currentPair = activeSynonyms[synonymChallengeIndex];
+            const pool = currentLevel.synonyms
+                .map(s => s.synonym)
+                .filter(syn => syn !== currentPair.synonym)
+                .sort(() => 0.5 - Math.random());
+
+            const options = [currentPair.synonym, ...pool.slice(0, 3)].sort(() => 0.5 - Math.random());
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
+                        <span>SYNONYM ${synonymChallengeIndex + 1} OF ${activeSynonyms.length}</span>
+                    </div>
+
+                    <h2 style="color: #fff; margin-bottom: 0.5rem;">Find the closest synonym for:</h2>
+
+                    <div style="background: rgba(0, 229, 255, 0.06); padding: 1.8rem; border-radius: 6px; margin-bottom: 2rem; border: 1px dashed rgba(0, 229, 255, 0.4); text-align: center;">
+                        <strong style="color: var(--neon-cyan); font-family: 'Playfair Display', serif; font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase;">
+                            ${currentPair.word}
+                        </strong>
+                    </div>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.2rem; font-size: 1.05rem;"
+                            onclick="checkSynonymGuess(this, '${escapeSingleQuotes(opt)}', '${escapeSingleQuotes(currentPair.synonym)}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkSynonymGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(15);
+                showToast('Great Match! +15 MP', 'var(--neon-green)');
+                setTimeout(() => {
+                    synonymChallengeIndex++;
+                    renderSynonymMatch();
+                }, 950);
+            } else {
+                btn.classList.add('btn-wrong', 'shake');
+                allButtons.forEach(b => {
+                    if (b.innerText.toLowerCase() === correct.toLowerCase()) {
+                        b.classList.add('btn-correct');
+                    }
+                });
+                setTimeout(() => {
+                    synonymChallengeIndex++;
+                    renderSynonymMatch();
+                }, 1700);
+            }
+        }
+
+        // Initialize application on load
+        init();
+    </script>
+</body>
+</html>
