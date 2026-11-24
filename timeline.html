@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChronoQuest: 20-Event Interactive Timeline</title>
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & RESET (Zero External Dependencies)
+       ========================================================================== */
+    :root {
+      --bg-page: #F6F7F4;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #F1F4F0;
+      --ink-primary: #1E293B;
+      --ink-secondary: #475569;
+      --ink-muted: #64748B;
+      --border-soft: #DCE3DC;
+      --border-dashed: #B8C4BA;
+
+      /* Infographic Template Palette */
+      --sage-bar: #C7E2C2;
+      --sage-bar-dark: #9BC894;
+      --sage-bar-border: #7EB377;
+      --sage-text: #274C2A;
+      --diamond-red: #DC2626;
+      --diamond-red-dark: #991B1B;
+      --checkpoint-green: #4D7C3F;
+      --checkpoint-glow: #10B981;
+
+      /* Accents & Status */
+      --accent-indigo: #4F46E5;
+      --accent-indigo-hover: #4338CA;
+      --accent-amber: #D97706;
+      --accent-amber-bg: #FEF3C7;
+      --status-ok: #10B981;
+      --status-ok-bg: #ECFDF5;
+      --status-err: #EF4444;
+      --status-err-bg: #FEF2F2;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 8px 20px -4px rgba(15, 23, 42, 0.12);
+      --shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.22);
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-sans);
+      color: var(--ink-primary);
+      background-color: var(--bg-page);
+      background-image: radial-gradient(#D5DDD4 1px, transparent 1px);
+      background-size: 22px 22px;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    /* ==========================================================================
+       HEADER & CONTROLS
+       ========================================================================== */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 10px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #2E7D32, #4F46E5);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .brand-sub {
+      font-size: 0.74rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    /* Mode Switcher */
+    .mode-switch {
+      display: inline-flex;
+      background: #EDF1EC;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      transition: all 0.18s ease;
+    }
+
+    .mode-btn.active {
+      background: #FFFFFF;
+      color: var(--accent-indigo);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+    }
+
+    /* Stats Pills */
+    .stats-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--status-ok);
+    }
+
+    .stat-label {
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    /* Action Buttons */
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: transform 0.14s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4F46E5, #6366F1);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4338CA, #4F46E5);
+    }
+
+    .btn-hint {
+      background: var(--accent-amber-bg);
+      color: #92400E;
+      border: 1px solid #FCD34D;
+    }
+    .btn-hint:hover {
+      background: #FDE68A;
+    }
+
+    .btn-secondary {
+      background: var(--bg-subtle);
+      color: var(--ink-primary);
+      border: 1px solid var(--border-soft);
+    }
+    .btn-secondary:hover {
+      background: #E2E8E1;
+    }
+
+    .btn-icon-only {
+      padding: 8px;
+      width: 35px;
+      height: 35px;
+      justify-content: center;
+    }
+
+    /* Top Mastery Progress Bar */
+    .top-progress-track {
+      height: 4px;
+      width: 100%;
+      background: #E2E8E1;
+      overflow: hidden;
+    }
+
+    .top-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10B981, #4F46E5);
+      transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ==========================================================================
+       MAIN LAYOUT
+       ========================================================================== */
+    .workspace {
+      flex: 1;
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 14px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Selection Helper Banner */
+    .selection-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--accent-indigo);
+      color: #FFFFFF;
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      font-size: 0.84rem;
+      font-weight: 600;
+      animation: popIn 0.22s ease forwards;
+    }
+
+    .selection-banner.visible {
+      display: flex;
+    }
+
+    .selection-banner-cancel {
+      background: rgba(255, 255, 255, 0.22);
+      color: #FFFFFF;
+      padding: 4px 10px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .selection-banner-cancel:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ==========================================================================
+       HORIZONTAL ALTERNATING INFOGRAPHIC TIMELINE SECTION
+       ========================================================================== */
+    .timeline-panel {
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .timeline-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-soft);
+      background: #FAFBF9;
+      flex-wrap: wrap;
+    }
+
+    .timeline-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .era-pill {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: #DFF0DC;
+      color: var(--sage-text);
+    }
+
+    .timeline-hint-text {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      font-weight: 500;
+    }
+
+    .scroll-hint-badge {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Floating Left/Right Scroll Arrows */
+    .scroll-nav-btn {
+      position: absolute;
+      top: 54%;
+      transform: translateY(-50%);
+      z-index: 25;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--border-soft);
+      color: var(--ink-primary);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.2s ease;
+    }
+    .scroll-nav-btn:hover {
+      background: var(--accent-indigo);
+      color: #FFFFFF;
+      border-color: var(--accent-indigo);
+      transform: translateY(-50%) scale(1.06);
+    }
+    .scroll-nav-btn.left { left: 10px; }
+    .scroll-nav-btn.right { right: 10px; }
+
+    /* Scrollable Horizontal Container */
+    .timeline-scroller {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      padding: 10px 44px 14px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FAFBF8 100%);
+    }
+
+    .timeline-scroller::-webkit-scrollbar {
+      height: 10px;
+    }
+    .timeline-scroller::-webkit-scrollbar-track {
+      background: #EDF1EC;
+      border-radius: 999px;
+    }
+    .timeline-scroller::-webkit-scrollbar-thumb {
+      background: #B5C7B3;
+      border-radius: 999px;
+      border: 2px solid #EDF1EC;
+    }
+    .timeline-scroller::-webkit-scrollbar-thumb:hover {
+      background: #87A884;
+    }
+
+    /* Fixed-height Infographic Canvas */
+    .timeline-canvas {
+      position: relative;
+      height: 506px;
+      /* Width is set dynamically by JS based on 20 slots */
+      min-width: 3560px;
+      user-select: none;
+    }
+
+    /* Central Sage-Green Horizontal Arrow Bar */
+    .center-bar-wrapper {
+      position: absolute;
+      left: 72px;
+      right: 76px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 46px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+    }
+
+    .center-bar-body {
+      position: relative;
+      flex: 1;
+      height: 100%;
+      background: linear-gradient(180deg, #D5EBD1 0%, var(--sage-bar) 100%);
+      border-top: 2px solid var(--sage-bar-border);
+      border-bottom: 2px solid var(--sage-bar-border);
+      border-left: 2px solid var(--sage-bar-border);
+      border-radius: 6px 0 0 6px;
+      box-shadow: 0 3px 10px rgba(77, 124, 63, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 36px 0 42px;
+    }
+
+    .center-bar-arrow {
+      width: 0;
+      height: 0;
+      border-top: 32px solid transparent;
+      border-bottom: 32px solid transparent;
+      border-left: 34px solid var(--sage-bar);
+      filter: drop-shadow(3px 0 0 var(--sage-bar-border));
+      flex-shrink: 0;
+    }
+
+    .bar-era-label {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--sage-text);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* Red Diamond Start & End Markers */
+    .endpoint-marker {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 12;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .endpoint-marker.start { left: 60px; }
+    .endpoint-marker.end { right: 98px; }
+
+    .red-diamond {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #EF4444, var(--diamond-red));
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+
+    .endpoint-label {
+      position: absolute;
+      white-space: nowrap;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .endpoint-marker.start .endpoint-label {
+      bottom: 34px;
+    }
+    .endpoint-marker.end .endpoint-label {
+      top: 34px;
+    }
+
+    .endpoint-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--diamond-red-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .endpoint-date {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+    }
+
+    /* Green Chevron Checkpoints sticking up on the bar */
+    .checkpoint-marker {
+      position: absolute;
+      top: calc(50% - 23px);
+      transform: translate(-50%, -100%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      transition: filter 0.35s ease;
+    }
+
+    .checkpoint-label-box {
+      background: #FFFFFF;
+      border: 1.5px solid #B5CBB1;
+      border-radius: 8px;
+      padding: 4px 9px;
+      text-align: center;
+      margin-bottom: 5px;
+      box-shadow: var(--shadow-sm);
+      white-space: nowrap;
+      transition: all 0.35s ease;
+    }
+
+    .checkpoint-kicker {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--checkpoint-green);
+      font-style: italic;
+    }
+
+    .checkpoint-name {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+    }
+
+    .checkpoint-chevron {
+      width: 26px;
+      height: 20px;
+      color: var(--checkpoint-green);
+      transition: transform 0.35s ease, color 0.35s ease;
+    }
+
+    .checkpoint-marker.unlocked .checkpoint-label-box {
+      background: #ECFDF5;
+      border-color: var(--checkpoint-glow);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.45);
+    }
+
+    .checkpoint-marker.unlocked .checkpoint-kicker {
+      color: #059669;
+    }
+
+    .checkpoint-marker.unlocked .checkpoint-chevron {
+      color: var(--checkpoint-glow);
+      transform: scale(1.18);
+      filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.7));
+    }
+
+    /* Alternating Slot Unit (Slot + Stem + Square Node) */
+    .timeline-node-unit {
+      position: absolute;
+      width: 158px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 8;
+    }
+
+    /* Even slots (2, 4, 6...) sit ABOVE the central bar */
+    .timeline-node-unit.is-above {
+      bottom: calc(50% + 17px);
+      flex-direction: column;
+    }
+
+    /* Odd slots (1, 3, 5...) hang BELOW the central bar */
+    .timeline-node-unit.is-below {
+      top: calc(50% + 17px);
+      flex-direction: column-reverse;
+    }
+
+    /* Colored Square Node sitting on the edge of the sage bar */
+    .bar-square-node {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+      flex-shrink: 0;
+      z-index: 9;
+    }
+
+    /* Crisp Vertical Stem connecting node to slot */
+    .slot-stem {
+      width: 2.5px;
+      height: 22px;
+      flex-shrink: 0;
+      opacity: 0.78;
+    }
+
+    /* Drop Zone Card Slot */
+    .timeline-slot {
+      width: 156px;
+      background: #FFFFFF;
+      border: 2px dashed var(--border-dashed);
+      border-radius: 13px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .timeline-slot.drag-over {
+      border-color: var(--accent-indigo);
+      border-style: solid;
+      background: #EEF2FF;
+      transform: scale(1.04);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+    }
+
+    .timeline-slot.target-ready {
+      border-color: var(--accent-indigo);
+      background: #F5F7FF;
+      cursor: pointer;
+    }
+
+    .timeline-slot.is-filled {
+      border-style: solid;
+      border-color: #CBD5E1;
+    }
+
+    .timeline-slot.is-locked {
+      border-style: solid;
+      border-color: var(--status-ok);
+      background: var(--status-ok-bg);
+    }
+
+    .timeline-slot.is-wrong {
+      border-style: solid;
+      border-color: var(--status-err);
+      background: var(--status-err-bg);
+    }
+
+    .slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      padding: 0 2px;
+    }
+
+    .slot-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      background: #E2E8F0;
+      color: var(--ink-primary);
+    }
+
+    .timeline-slot.is-locked .slot-num {
+      background: var(--status-ok);
+      color: #FFFFFF;
+    }
+    .timeline-slot.is-wrong .slot-num {
+      background: var(--status-err);
+      color: #FFFFFF;
+    }
+
+    .slot-date {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--ink-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slot-date.is-hidden {
+      color: #94A3B8;
+      font-style: italic;
+    }
+
+    .slot-body {
+      min-height: 134px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot-empty-placeholder {
+      text-align: center;
+      padding: 10px 6px;
+      color: #94A3B8;
+      pointer-events: none;
+    }
+
+    .slot-empty-plus {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 5px;
+      border-radius: 8px;
+      background: #F1F5F9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94A3B8;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .slot-empty-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    /* ==========================================================================
+       VECTOR PICTURE CARDS (Shared by Tray & Slots)
+       ========================================================================== */
+    .vector-card {
+      position: relative;
+      width: 100%;
+      background: #FFFFFF;
+      border: 1.5px solid #DCE3DC;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: grab;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .vector-card:hover:not(.locked) {
+      transform: translateY(-2px);
+      border-color: var(--accent-indigo);
+      box-shadow: var(--shadow-md);
+    }
+
+    .vector-card:active:not(.locked) {
+      cursor: grabbing;
+    }
+
+    .vector-card.dragging {
+      opacity: 0.45;
+      transform: scale(0.95);
+    }
+
+    .vector-card.selected {
+      outline: 3px solid var(--accent-indigo);
+      outline-offset: 2px;
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 24px rgba(79, 70, 229, 0.3);
+    }
+
+    .vector-card.locked {
+      cursor: pointer;
+      border-color: #6EE7B7;
+    }
+
+    .card-art {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 5 / 3;
+      background: #F8FAFC;
+      overflow: hidden;
+    }
+
+    .card-art svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .card-title {
+      padding: 6px 6px 7px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      text-align: center;
+      line-height: 1.22;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+    }
+
+    /* Badges on Placed Cards */
+    .card-check-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      background: var(--status-ok);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.45);
+    }
+
+    .card-info-btn {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.78);
+      color: #FFFFFF;
+      font-size: 0.72rem;
+      font-weight: 800;
+      font-style: italic;
+      font-family: Georgia, serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: background-color 0.15s ease, transform 0.15s ease;
+    }
+    .card-info-btn:hover {
+      background: var(--accent-indigo);
+      transform: scale(1.1);
+    }
+
+    /* ==========================================================================
+       DOCKED VECTOR CARD TRAY
+       ========================================================================== */
+    .tray-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 12px 16px 16px;
+    }
+
+    .tray-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tray-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tray-badge {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: var(--accent-amber-bg);
+      color: #92400E;
+    }
+
+    .tray-count {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    .tray-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(134px, 1fr));
+      gap: 10px;
+      min-height: 130px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      border: 2px dashed var(--border-soft);
+      background: #F8FAF7;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .tray-grid.drag-over {
+      border-color: var(--accent-indigo);
+      background: #EEF2FF;
+    }
+
+    .tray-empty-msg {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 12px;
+      text-align: center;
+      color: var(--ink-muted);
+      gap: 4px;
+    }
+
+    /* ==========================================================================
+       MODALS, TOASTS & ANIMATIONS
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(15, 23, 42, 0.56);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #FFFFFF;
+      border-radius: 22px;
+      max-width: 460px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-soft);
+      animation: popIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .fact-art-banner {
+      width: 100%;
+      height: 190px;
+      background: #F1F5F9;
+    }
+
+    .fact-art-banner svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .modal-body {
+      padding: 20px 22px 22px;
+    }
+
+    .modal-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .modal-date-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      background: #EEF2FF;
+      color: var(--accent-indigo);
+    }
+
+    .modal-era-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-muted);
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-bottom: 8px;
+    }
+
+    .modal-text {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--ink-secondary);
+      margin-bottom: 18px;
+    }
+
+    /* Victory Modal Specifics */
+    .victory-card {
+      text-align: center;
+      padding: 26px 24px 24px;
+      position: relative;
+    }
+
+    .victory-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #F59E0B, #10B981, #4F46E5);
+    }
+
+    .victory-stars {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 6px 0 12px;
+    }
+
+    .victory-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    .victory-stat-box {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 10px 6px;
+    }
+
+    .victory-stat-k {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .victory-stat-v {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-top: 2px;
+    }
+
+    .victory-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .victory-actions .btn {
+      flex: 1;
+      justify-content: center;
+      padding: 11px 14px;
+      font-size: 0.85rem;
+    }
+
+    /* Toast Container */
+    .toast-container {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 70;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      width: 92%;
+      max-width: 440px;
+    }
+
+    .toast {
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      animation: popIn 0.22s ease forwards;
+    }
+
+    .toast.info { background: #1E293B; }
+    .toast.success { background: #059669; }
+    .toast.warning { background: #D97706; }
+    .toast.error { background: #DC2626; }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 65;
+    }
+
+    /* Keyframes */
+    @keyframes popIn {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    @keyframes lockPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65); }
+      70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .animate-shake {
+      animation: shake 0.42s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    .animate-lock-pulse {
+      animation: lockPulse 0.8s ease-out;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .header-inner {
+        padding: 10px 12px;
+      }
+      .workspace {
+        padding: 10px 10px 16px;
+      }
+      .scroll-nav-btn {
+        width: 34px;
+        height: 34px;
+      }
+      .tray-grid {
+        grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+        max-height: 230px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ==================== TOP HEADER BAR ==================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <!-- Title & Placed Counter -->
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"></circle>
+            <polyline points="12 7 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">ChronoQuest</div>
+          <div class="brand-sub"><span id="stat-placed">0</span> / 20 Placed &middot; <span id="stat-correct">0</span> Verified</div>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="mode-switch" role="group" aria-label="Game Mode">
+        <button id="mode-dates-btn" class="mode-btn active" type="button">Match the Dates</button>
+        <button id="mode-order-btn" class="mode-btn" type="button">Pure Order</button>
+      </div>
+
+      <!-- Live Timer & Accuracy -->
+      <div class="stats-group">
+        <div class="stat-pill" title="Elapsed Time">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"></circle>
+            <polyline points="12 7 12 12 15 14"></polyline>
+          </svg>
+          <span id="stat-timer">00:00</span>
+        </div>
+        <div class="stat-pill" title="Check Accuracy">
+          <span class="stat-label">Accuracy</span>
+          <span id="stat-accuracy" style="color: var(--accent-indigo);">--</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions-group">
+        <button id="hint-btn" class="btn btn-hint" type="button" title="Auto-place one card into its correct slot">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          Hint
+        </button>
+
+        <button id="check-btn" class="btn btn-primary" type="button">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Check Timeline
+        </button>
+
+        <button id="reset-btn" class="btn btn-secondary" type="button">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Reset
+        </button>
+
+        <button id="sound-btn" class="btn btn-secondary btn-icon-only" type="button" aria-label="Toggle Sound" title="Mute / Unmute Sound">
+          <svg id="icon-sound-on" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="icon-sound-off" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" style="display:none; color:#94A3B8;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <!-- Progress Indicator Bar -->
+    <div class="top-progress-track">
+      <div id="top-progress-fill" class="top-progress-fill"></div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="workspace">
+    <!-- Selection Helper Banner (Tap-to-Place) -->
+    <div id="selection-banner" class="selection-banner" role="status">
+      <span id="selection-banner-text">Card selected — tap any open timeline slot to place it.</span>
+      <button id="cancel-selection-btn" class="selection-banner-cancel" type="button">Cancel</button>
+    </div>
+
+    <!-- ==================== HORIZONTAL ALTERNATING TIMELINE ==================== -->
+    <section class="timeline-panel" aria-label="20-Event Interactive Infographic Timeline">
+      <div class="timeline-toolbar">
+        <div class="timeline-toolbar-left">
+          <span class="era-pill">Infographic Timeline</span>
+          <span id="instruction-text" class="timeline-hint-text">
+            Drag or tap vector cards into the 20 alternating slots from ~66M BCE to the 2020s.
+          </span>
+        </div>
+        <span class="scroll-hint-badge">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Scroll or use arrows to explore all 20 milestones
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Left & Right Smooth Scroll Buttons -->
+      <button id="scroll-left-btn" class="scroll-nav-btn left" type="button" aria-label="Scroll timeline left">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button id="scroll-right-btn" class="scroll-nav-btn right" type="button" aria-label="Scroll timeline right">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Horizontally Scrollable Timeline Canvas -->
+      <div id="timeline-scroller" class="timeline-scroller">
+        <div id="timeline-canvas" class="timeline-canvas">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== DOCKED VECTOR CARD TRAY ==================== -->
+    <section class="tray-panel" aria-label="Shuffled Vector Card Tray">
+      <div class="tray-header">
+        <div class="tray-title-group">
+          <span class="tray-badge">Vector Card Tray</span>
+          <span id="tray-count-label" class="tray-count">20 cards remaining</span>
+        </div>
+        <span class="timeline-hint-text">
+          Drag cards onto timeline slots (or tap a card, then tap a slot). Tap "i" on placed cards for facts.
+        </span>
+      </div>
+
+      <div id="card-tray" class="tray-grid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== TOASTS ==================== -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- ==================== FACT MODAL ==================== -->
+  <div id="fact-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="fact-modal-title">
+    <div class="modal-card">
+      <div id="fact-modal-art" class="fact-art-banner"></div>
+      <div class="modal-body">
+        <div class="modal-meta">
+          <span id="fact-modal-date" class="modal-date-pill"></span>
+          <span id="fact-modal-era" class="modal-era-label"></span>
+        </div>
+        <h2 id="fact-modal-title" class="modal-title"></h2>
+        <p id="fact-modal-text" class="modal-text"></p>
+        <button id="close-fact-btn" class="btn btn-primary" type="button" style="width:100%; justify-content:center; padding:11px;">
+          Close Fact
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VICTORY MODAL ==================== -->
+  <div id="victory-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="victory-title">
+    <div class="modal-card victory-card">
+      <div class="victory-strip"></div>
+      <div id="victory-stars" class="victory-stars"></div>
+      <h2 id="victory-title" class="modal-title" style="font-size:1.55rem;">20-Event Timeline Mastered!</h2>
+      <p class="modal-text" style="margin-bottom: 12px;">
+        Incredible work! You connected 66 million years of human and natural history from the Dinosaur Extinction to AI Datacenters.
+      </p>
+      <div class="victory-stats-grid">
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Time</div>
+          <div id="victory-time" class="victory-stat-v">00:00</div>
+        </div>
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Accuracy</div>
+          <div id="victory-accuracy" class="victory-stat-v" style="color: var(--status-ok);">100%</div>
+        </div>
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Hints Used</div>
+          <div id="victory-hints" class="victory-stat-v" style="color: var(--accent-amber);">0</div>
+        </div>
+      </div>
+      <div class="victory-actions">
+        <button id="victory-inspect-btn" class="btn btn-secondary" type="button">Inspect Timeline</button>
+        <button id="victory-play-again-btn" class="btn btn-primary" type="button">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION SCRIPT ==================== -->
+  <script>
+    /**
+     * 20 HISTORICAL EVENTS WITH CUSTOM INLINE SVG VECTOR ILLUSTRATIONS
+     * Every SVG uses unique gradient IDs (g1..g20) to avoid DOM collisions.
+     */
+    const EVENTS = [
+      {
+        id: 'dinosaur-extinction',
+        title: 'Dinosaur Extinction',
+        date: '~66 Million BCE',
+        era: 'Prehistory',
+        nodeColor: '#B45309',
+        fact: 'A 10-kilometer-wide asteroid struck near the Yucatán Peninsula, forming the Chicxulub crater and triggering global climate changes that ended the reign of non-avian dinosaurs.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g1sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#311B47"/><stop offset="55%" stop-color="#C2410C"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>
+            <linearGradient id="g1tail" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEF08A" stop-opacity="0"/><stop offset="60%" stop-color="#F97316"/><stop offset="100%" stop-color="#FFFBEB"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g1sky)"/>
+          <polygon points="184,4 198,16 122,68 110,55" fill="url(#g1tail)"/>
+          <circle cx="115" cy="61" r="10" fill="#FEF08A"/>
+          <circle cx="113" cy="62" r="6" fill="#7C2D12"/>
+          <polygon points="146,105 170,64 196,105" fill="#451A03"/>
+          <path d="M167,64 Q172,54 178,59 Q174,63 173,65 Z" fill="#F97316"/>
+          <path d="M0,96 Q60,88 120,96 T200,94 L200,120 L0,120 Z" fill="#29150E"/>
+          <path d="M36,105 L42,84 L32,82 L24,86 L24,78 L42,74 L52,61 L66,59 L72,65 L64,69 L66,73 L58,75 L56,88 L64,105 L57,105 L52,92 L46,105 Z" fill="#1C1917"/>
+          <path d="M90,100 Q88,82 94,72" stroke="#1C1917" stroke-width="3" fill="none"/>
+          <path d="M94,72 Q82,66 78,74 M94,72 Q96,60 106,66 M94,72 Q104,70 108,78" stroke="#1C1917" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>`
+      },
+      {
+        id: 'control-of-fire',
+        title: 'Control of Fire',
+        date: '~1 Million BCE',
+        era: 'Prehistory',
+        nodeColor: '#EA580C',
+        fact: 'Early humans learned to harness fire for warmth, protection from predators, and cooking food—unlocking more calories that helped fuel human brain evolution.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g2glow" cx="50%" cy="62%" r="48%"><stop offset="0%" stop-color="#F97316" stop-opacity="0.75"/><stop offset="100%" stop-color="#1E1B4B" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="200" height="120" fill="#1E1B4B"/>
+          <circle cx="28" cy="22" r="1.3" fill="#FFF"/><circle cx="164" cy="18" r="1.4" fill="#FFF"/><circle cx="140" cy="34" r="1" fill="#FFF"/>
+          <rect width="200" height="120" fill="url(#g2glow)"/>
+          <path d="M0,96 Q100,88 200,96 L200,120 L0,120 Z" fill="#312E81"/>
+          <path d="M100,26 C116,44 128,58 122,82 C118,92 82,92 78,82 C72,58 84,44 100,26 Z" fill="#EA580C"/>
+          <path d="M100,40 C110,54 118,65 113,82 C110,88 90,88 87,82 C82,65 90,54 100,40 Z" fill="#FACC15"/>
+          <path d="M100,56 C106,66 108,74 105,82 C103,86 97,86 95,82 C92,74 94,66 100,56 Z" fill="#FEF9C3"/>
+          <circle cx="80" cy="34" r="2.2" fill="#FDE047"/><circle cx="122" cy="38" r="1.8" fill="#FB923C"/><circle cx="106" cy="18" r="2" fill="#FEF08A"/>
+          <rect x="66" y="82" width="68" height="9" rx="4" fill="#78350F" transform="rotate(8 100 86)"/>
+          <rect x="66" y="82" width="68" height="9" rx="4" fill="#92400E" transform="rotate(-8 100 86)"/>
+          <ellipse cx="64" cy="96" rx="12" ry="7" fill="#64748B"/><ellipse cx="86" cy="100" rx="13" ry="7" fill="#94A3B8"/>
+          <ellipse cx="114" cy="100" rx="13" ry="7" fill="#64748B"/><ellipse cx="136" cy="96" rx="12" ry="7" fill="#475569"/>
+        </svg>`
+      },
+      {
+        id: 'dawn-of-agriculture',
+        title: 'Dawn of Agriculture',
+        date: '~10,000 BCE',
+        era: 'Prehistory',
+        nodeColor: '#CA8A04',
+        fact: 'During the Neolithic Revolution, humans began domesticating wild grains like wheat and barley, leading to permanent villages, food surpluses, and the rise of civilizations.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g3sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#FEF3C7"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g3sky)"/>
+          <circle cx="164" cy="28" r="15" fill="#FBBF24"/>
+          <path d="M0,84 Q100,72 200,84 L200,120 L0,120 Z" fill="#92400E"/>
+          <path d="M0,96 Q100,86 200,96" stroke="#78350F" stroke-width="3" fill="none"/>
+          <path d="M0,108 Q100,98 200,108" stroke="#78350F" stroke-width="3" fill="none"/>
+          <!-- Wheat Stalks -->
+          <g stroke="#CA8A04" stroke-width="2.5" fill="#FACC15">
+            <path d="M52,96 Q50,64 56,34" fill="none"/><ellipse cx="52" cy="40" rx="4" ry="7" transform="rotate(-25 52 40)"/><ellipse cx="60" cy="46" rx="4" ry="7" transform="rotate(25 60 46)"/><ellipse cx="50" cy="54" rx="4" ry="7" transform="rotate(-25 50 54)"/><ellipse cx="59" cy="60" rx="4" ry="7" transform="rotate(25 59 60)"/>
+            <path d="M84,96 Q84,60 88,26" fill="none"/><ellipse cx="83" cy="34" rx="4.5" ry="7.5" transform="rotate(-25 83 34)"/><ellipse cx="92" cy="40" rx="4.5" ry="7.5" transform="rotate(25 92 40)"/><ellipse cx="82" cy="48" rx="4.5" ry="7.5" transform="rotate(-25 82 48)"/><ellipse cx="91" cy="55" rx="4.5" ry="7.5" transform="rotate(25 91 55)"/>
+            <path d="M114,96 Q116,66 112,38" fill="none"/><ellipse cx="108" cy="44" rx="4" ry="7" transform="rotate(-25 108 44)"/><ellipse cx="117" cy="50" rx="4" ry="7" transform="rotate(25 117 50)"/><ellipse cx="109" cy="58" rx="4" ry="7" transform="rotate(-25 109 58)"/>
+          </g>
+          <!-- Curved Sickle -->
+          <path d="M138,74 C126,52 142,36 164,46 C148,46 140,56 146,72 Z" fill="#CBD5E1" stroke="#475569" stroke-width="1.5"/>
+          <rect x="139" y="71" width="8" height="22" rx="3" fill="#78350F" transform="rotate(-18 143 82)"/>
+        </svg>`
+      },
+      {
+        id: 'invention-wheel',
+        title: 'Invention of the Wheel',
+        date: '~3,500 BCE',
+        era: 'Ancient',
+        nodeColor: '#92400E',
+        fact: 'The earliest wheels appeared in ancient Mesopotamia as potter’s wheels before being fitted to axles for carts, transforming trade, farming, and transportation.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g4sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FDE68A"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g4sky)"/>
+          <circle cx="164" cy="26" r="13" fill="#FFFBEB" opacity="0.85"/>
+          <path d="M0,92 Q50,76 110,90 T200,86 L200,120 L0,120 Z" fill="#D97706"/>
+          <path d="M0,104 Q70,96 140,104 T200,100 L200,120 L0,120 Z" fill="#B45309"/>
+          <rect x="26" y="62" width="132" height="10" rx="3" fill="#78350F"/>
+          <g transform="translate(100, 66)">
+            <circle r="36" fill="#92400E" stroke="#451A03" stroke-width="4"/>
+            <circle r="27" fill="#B45309"/>
+            <line x1="-27" y1="0" x2="27" y2="0" stroke="#451A03" stroke-width="4"/>
+            <line x1="0" y1="-27" x2="0" y2="27" stroke="#451A03" stroke-width="4"/>
+            <line x1="-19" y1="-19" x2="19" y2="19" stroke="#451A03" stroke-width="3.5"/>
+            <line x1="19" y1="-19" x2="-19" y2="19" stroke="#451A03" stroke-width="3.5"/>
+            <circle r="10" fill="#78350F" stroke="#451A03" stroke-width="3"/>
+            <circle r="4" fill="#FDE68A"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'great-pyramid',
+        title: 'Great Pyramid of Giza',
+        date: '~2,560 BCE',
+        era: 'Ancient',
+        nodeColor: '#D97706',
+        fact: 'Constructed for Pharaoh Khufu using over 2.3 million limestone and granite blocks, the Great Pyramid remained the tallest human-made structure on Earth for over 3,800 years.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g5sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38BDF8"/><stop offset="70%" stop-color="#BAE6FD"/><stop offset="100%" stop-color="#FEF3C7"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g5sky)"/>
+          <circle cx="34" cy="28" r="13" fill="#FBBF24"/>
+          <polygon points="122,94 152,50 182,94" fill="#EAB308"/>
+          <polygon points="152,50 182,94 158,94" fill="#B45309"/>
+          <polygon points="34,98 96,22 158,98" fill="#F59E0B"/>
+          <polygon points="96,22 158,98 112,98" fill="#B45309"/>
+          <line x1="65" y1="60" x2="127" y2="60" stroke="#D97706" stroke-width="1" opacity="0.6"/>
+          <line x1="50" y1="78" x2="142" y2="78" stroke="#D97706" stroke-width="1" opacity="0.6"/>
+          <path d="M0,95 Q55,88 108,96 T200,92 L200,120 L0,120 Z" fill="#FCD34D"/>
+          <path d="M0,106 Q75,100 150,108 T200,104 L200,120 L0,120 Z" fill="#F59E0B"/>
+        </svg>`
+      },
+      {
+        id: 'invention-paper',
+        title: 'Invention of Paper',
+        date: '~105 CE',
+        era: 'Classical',
+        nodeColor: '#B45309',
+        fact: 'Court official Cai Lun of China’s Han Dynasty standardized papermaking using mulberry bark, hemp, and rags—creating a light, affordable writing surface that spread across the world.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#ECFDF5"/>
+          <!-- Bamboo Stalks -->
+          <line x1="22" y1="10" x2="22" y2="115" stroke="#16A34A" stroke-width="5"/>
+          <line x1="18" y1="44" x2="26" y2="44" stroke="#15803D" stroke-width="2"/>
+          <line x1="18" y1="78" x2="26" y2="78" stroke="#15803D" stroke-width="2"/>
+          <ellipse cx="32" cy="36" rx="9" ry="3.5" fill="#22C55E" transform="rotate(-25 32 36)"/>
+          <!-- Unrolled Parchment Scroll -->
+          <rect x="48" y="24" width="96" height="72" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+          <rect x="40" y="18" width="12" height="84" rx="5" fill="#92400E"/>
+          <rect x="140" y="18" width="12" height="84" rx="5" fill="#92400E"/>
+          <!-- Calligraphy Strokes -->
+          <g stroke="#334155" stroke-width="2.4" stroke-linecap="round">
+            <line x1="66" y1="40" x2="122" y2="40"/>
+            <line x1="66" y1="53" x2="112" y2="53"/>
+            <line x1="66" y1="66" x2="126" y2="66"/>
+            <line x1="66" y1="79" x2="98" y2="79"/>
+          </g>
+          <rect x="114" y="72" width="14" height="14" rx="2" fill="#DC2626"/>
+          <!-- Bamboo Calligraphy Brush -->
+          <g transform="translate(166, 58) rotate(22)">
+            <rect x="-3" y="-38" width="6" height="58" rx="2" fill="#B45309"/>
+            <path d="M-4,20 L4,20 L0,36 Z" fill="#1E293B"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'magnetic-compass',
+        title: 'Magnetic Compass',
+        date: '~1044 CE',
+        era: 'Medieval',
+        nodeColor: '#0284C7',
+        fact: 'First documented in Song Dynasty China for navigation, the magnetized compass allowed sailors to cross open oceans safely even under cloudy skies, ushering in the Age of Exploration.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g7bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0C4A6E"/><stop offset="100%" stop-color="#0284C7"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g7bg)"/>
+          <!-- Subtle Map Grid -->
+          <line x1="0" y1="60" x2="200" y2="60" stroke="#38BDF8" stroke-width="1" opacity="0.25"/>
+          <line x1="100" y1="0" x2="100" y2="120" stroke="#38BDF8" stroke-width="1" opacity="0.25"/>
+          <!-- Brass Compass -->
+          <g transform="translate(100, 62)">
+            <circle r="44" fill="#D97706" stroke="#FDE68A" stroke-width="3"/>
+            <circle r="37" fill="#FFFBEB" stroke="#92400E" stroke-width="2"/>
+            <text x="0" y="-24" text-anchor="middle" font-size="10" font-weight="800" fill="#B91C1C">N</text>
+            <text x="0" y="32" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">S</text>
+            <text x="27" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">E</text>
+            <text x="-27" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">W</text>
+            <!-- Compass Needle -->
+            <g transform="rotate(28)">
+              <polygon points="0,-24 6,0 -6,0" fill="#DC2626"/>
+              <polygon points="0,24 6,0 -6,0" fill="#CBD5E1" stroke="#64748B" stroke-width="0.8"/>
+              <circle r="4.5" fill="#B45309"/>
+            </g>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'printing-press',
+        title: 'Gutenberg Printing Press',
+        date: '~1440 CE',
+        era: 'Renaissance',
+        nodeColor: '#991B1B',
+        fact: 'Johannes Gutenberg combined movable metal type with a wooden screw press in Mainz, Germany, slashing book costs and fueling the Renaissance and Scientific Revolution.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#FEF3C7"/>
+          <path d="M25,120 L25,38 Q100,-10 175,38 L175,120 Z" fill="#FDE68A" opacity="0.7"/>
+          <rect x="46" y="16" width="12" height="92" rx="2" fill="#78350F"/>
+          <rect x="142" y="16" width="12" height="92" rx="2" fill="#78350F"/>
+          <rect x="40" y="16" width="120" height="14" rx="2" fill="#92400E"/>
+          <rect x="38" y="88" width="124" height="14" rx="2" fill="#92400E"/>
+          <rect x="94" y="28" width="12" height="32" fill="#64748B"/>
+          <rect x="74" y="42" width="66" height="6" rx="3" fill="#451A03"/>
+          <circle cx="140" cy="45" r="5" fill="#B45309"/>
+          <rect x="64" y="58" width="72" height="10" rx="2" fill="#475569"/>
+          <rect x="68" y="68" width="64" height="28" rx="2" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+          <rect x="74" y="73" width="9" height="9" rx="1" fill="#DC2626"/>
+          <line x1="87" y1="75" x2="124" y2="75" stroke="#334155" stroke-width="2"/>
+          <line x1="87" y1="80" x2="120" y2="80" stroke="#334155" stroke-width="2"/>
+          <line x1="74" y1="87" x2="124" y2="87" stroke="#334155" stroke-width="2"/>
+        </svg>`
+      },
+      {
+        id: 'galileo-telescope',
+        title: "Galileo's Telescope",
+        date: '1609',
+        era: 'Renaissance',
+        nodeColor: '#4338CA',
+        fact: 'Galileo Galilei built an improved refracting telescope and turned it toward the night sky, discovering Jupiter’s four largest moons, lunar craters, and Saturn’s rings.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g9sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#312E81"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g9sky)"/>
+          <circle cx="30" cy="24" r="1.5" fill="#FFF"/><circle cx="76" cy="18" r="1.2" fill="#FEF08A"/><circle cx="118" cy="26" r="1.6" fill="#FFF"/>
+          <!-- Ringed Planet (Saturn) -->
+          <g transform="translate(154, 32) rotate(-18)">
+            <ellipse rx="24" ry="6" fill="none" stroke="#FDE68A" stroke-width="3"/>
+            <circle r="11" fill="#F59E0B"/>
+            <path d="M-24,0 A24,6 0 0,0 24,0" fill="none" stroke="#FDE68A" stroke-width="3"/>
+          </g>
+          <!-- Wooden Tripod -->
+          <line x1="82" y1="72" x2="54" y2="114" stroke="#92400E" stroke-width="4" stroke-linecap="round"/>
+          <line x1="82" y1="72" x2="84" y2="114" stroke="#78350F" stroke-width="4" stroke-linecap="round"/>
+          <line x1="82" y1="72" x2="112" y2="114" stroke="#92400E" stroke-width="4" stroke-linecap="round"/>
+          <!-- Brass Telescope Tube -->
+          <g transform="translate(82, 66) rotate(-26)">
+            <rect x="-42" y="-6" width="84" height="12" rx="3" fill="#D97706" stroke="#FDE68A" stroke-width="1.5"/>
+            <rect x="34" y="-8" width="16" height="16" rx="2" fill="#F59E0B" stroke="#FEF3C7" stroke-width="1.5"/>
+            <rect x="-52" y="-4" width="12" height="8" rx="1.5" fill="#92400E"/>
+            <ellipse cx="50" cy="0" rx="2.5" ry="7" fill="#38BDF8"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'steam-engine',
+        title: "Watt's Steam Engine",
+        date: '1776',
+        era: 'Industrial',
+        nodeColor: '#475569',
+        fact: 'James Watt’s separate-condenser steam engine dramatically increased fuel efficiency, powering factories, mines, locomotives, and steamships during the Industrial Revolution.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#E2E8F0"/>
+          <circle cx="52" cy="26" r="12" fill="#FFFFFF"/><circle cx="68" cy="20" r="15" fill="#FFFFFF"/><circle cx="88" cy="18" r="11" fill="#F8FAFC"/>
+          <rect x="44" y="34" width="16" height="44" fill="#334155"/>
+          <rect x="40" y="32" width="24" height="6" rx="2" fill="#1E293B"/>
+          <rect x="34" y="62" width="76" height="36" rx="8" fill="#475569" stroke="#1E293B" stroke-width="3"/>
+          <rect x="42" y="70" width="16" height="10" rx="2" fill="#F59E0B"/>
+          <g transform="translate(142, 74)">
+            <circle r="27" fill="none" stroke="#B45309" stroke-width="7"/>
+            <line x1="-23" y1="0" x2="23" y2="0" stroke="#B45309" stroke-width="4"/>
+            <line x1="0" y1="-23" x2="0" y2="23" stroke="#B45309" stroke-width="4"/>
+            <circle r="7" fill="#1E293B"/>
+          </g>
+          <line x1="106" y1="74" x2="142" y2="74" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round"/>
+          <rect x="0" y="102" width="200" height="18" fill="#334155"/>
+        </svg>`
+      },
+      {
+        id: 'smallpox-vaccine',
+        title: 'Smallpox Vaccine',
+        date: '1796',
+        era: 'Industrial',
+        nodeColor: '#059669',
+        fact: 'English physician Edward Jenner pioneered vaccination using cowpox to protect against smallpox, launching modern immunology and eventually eradicating smallpox worldwide.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#ECFDF5"/>
+          <!-- Protective Shield -->
+          <path d="M138,20 L174,30 L174,62 C174,84 156,96 138,104 C120,96 102,84 102,62 L102,30 Z" fill="#10B981" stroke="#047857" stroke-width="2.5"/>
+          <rect x="133" y="42" width="10" height="32" rx="2" fill="#FFFFFF"/>
+          <rect x="122" y="53" width="32" height="10" rx="2" fill="#FFFFFF"/>
+          <!-- Medical Vial -->
+          <rect x="34" y="44" width="32" height="54" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.5"/>
+          <rect x="37" y="64" width="26" height="31" rx="3" fill="#38BDF8" opacity="0.65"/>
+          <rect x="41" y="34" width="18" height="10" rx="2" fill="#94A3B8"/>
+          <rect x="38" y="30" width="24" height="5" rx="2" fill="#475569"/>
+          <!-- Syringe -->
+          <g transform="translate(86, 62) rotate(-32)">
+            <rect x="-6" y="-22" width="12" height="36" rx="2" fill="#E0F2FE" stroke="#0369A1" stroke-width="2"/>
+            <rect x="-4" y="-6" width="8" height="18" fill="#38BDF8"/>
+            <line x1="0" y1="-22" x2="0" y2="-38" stroke="#475569" stroke-width="2.5"/>
+            <line x1="-6" y1="-38" x2="6" y2="-38" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+            <line x1="0" y1="14" x2="0" y2="34" stroke="#64748B" stroke-width="2"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'electric-light-bulb',
+        title: 'Electric Light Bulb',
+        date: '1879',
+        era: 'Industrial',
+        nodeColor: '#EAB308',
+        fact: 'Thomas Edison and his Menlo Park team developed a long-lasting carbon-filament incandescent bulb and electrical distribution system, illuminating homes and cities after dark.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g12glow" cx="50%" cy="44%" r="44%"><stop offset="0%" stop-color="#FEF08A"/><stop offset="55%" stop-color="#F59E0B" stop-opacity="0.35"/><stop offset="100%" stop-color="#1E293B" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="200" height="120" fill="#1E293B"/>
+          <rect width="200" height="120" fill="url(#g12glow)"/>
+          <!-- Light Rays -->
+          <g stroke="#FDE047" stroke-width="3" stroke-linecap="round">
+            <line x1="100" y1="8" x2="100" y2="16"/>
+            <line x1="56" y1="22" x2="64" y2="28"/>
+            <line x1="144" y1="22" x2="136" y2="28"/>
+            <line x1="44" y1="54" x2="54" y2="54"/>
+            <line x1="156" y1="54" x2="146" y2="54"/>
+          </g>
+          <!-- Glass Bulb -->
+          <path d="M100,22 C80,22 68,36 68,52 C68,65 78,72 82,84 L118,84 C122,72 132,65 132,52 C132,36 120,22 100,22 Z" fill="#FEF08A" stroke="#F59E0B" stroke-width="2.5"/>
+          <!-- Glowing Filament -->
+          <path d="M92,84 L92,58 Q100,44 108,58 L108,84" fill="none" stroke="#EA580C" stroke-width="2.5"/>
+          <path d="M92,58 Q96,52 100,58 Q104,52 108,58" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+          <!-- Screw Base -->
+          <rect x="84" y="84" width="32" height="18" rx="3" fill="#94A3B8" stroke="#475569" stroke-width="2"/>
+          <line x1="84" y1="90" x2="116" y2="90" stroke="#475569" stroke-width="2"/>
+          <line x1="84" y1="96" x2="116" y2="96" stroke="#475569" stroke-width="2"/>
+          <path d="M91,102 L109,102 L105,109 L95,109 Z" fill="#334155"/>
+        </svg>`
+      },
+      {
+        id: 'wright-brothers-flight',
+        title: "Wright Brothers' Flight",
+        date: '1903',
+        era: 'Modern',
+        nodeColor: '#0284C7',
+        fact: 'On December 17, 1903, Orville and Wilbur Wright completed the first controlled, sustained, powered heavier-than-air flight at Kitty Hawk, North Carolina.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g13sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0284C7"/><stop offset="100%" stop-color="#BAE6FD"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g13sky)"/>
+          <g fill="#FFFFFF" opacity="0.85">
+            <circle cx="38" cy="28" r="10"/><circle cx="50" cy="26" r="13"/><circle cx="62" cy="30" r="9"/>
+            <circle cx="152" cy="22" r="9"/><circle cx="164" cy="20" r="12"/><circle cx="176" cy="24" r="8"/>
+          </g>
+          <path d="M0,98 Q65,86 130,96 T200,92 L200,120 L0,120 Z" fill="#FDE68A"/>
+          <g transform="translate(100, 56) rotate(-7)">
+            <line x1="-38" y1="-12" x2="-38" y2="8" stroke="#78350F" stroke-width="2"/>
+            <line x1="-14" y1="-12" x2="-14" y2="8" stroke="#78350F" stroke-width="2"/>
+            <line x1="14" y1="-12" x2="14" y2="8" stroke="#78350F" stroke-width="2"/>
+            <line x1="38" y1="-12" x2="38" y2="8" stroke="#78350F" stroke-width="2"/>
+            <path d="M-24,16 L26,16 Q34,16 36,10" stroke="#78350F" stroke-width="2.5" fill="none"/>
+            <rect x="-52" y="5" width="104" height="6" rx="3" fill="#FEF3C7" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="-52" y="-15" width="104" height="6" rx="3" fill="#FFFBEB" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="-58" y="-8" width="8" height="14" rx="1" fill="#FDE68A" stroke="#B45309" stroke-width="1"/>
+            <circle cx="4" cy="0" r="3.5" fill="#1E293B"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'discovery-penicillin',
+        title: 'Discovery of Penicillin',
+        date: '1928',
+        era: 'Modern',
+        nodeColor: '#0D9488',
+        fact: 'Alexander Fleming noticed a blue-green mold killing surrounding bacteria in a petri dish in London, leading to the world’s first true antibiotic and saving hundreds of millions of lives.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#F0FDFA"/>
+          <!-- Petri Dish -->
+          <circle cx="76" cy="64" r="42" fill="#CCFBF1" stroke="#0D9488" stroke-width="3"/>
+          <circle cx="76" cy="64" r="35" fill="#FFFFFF" opacity="0.6"/>
+          <!-- Bacteria Dots -->
+          <g fill="#F59E0B">
+            <circle cx="52" cy="48" r="3"/><circle cx="60" cy="40" r="2.5"/><circle cx="48" cy="68" r="3"/>
+            <circle cx="58" cy="84" r="3"/><circle cx="78" cy="92" r="2.8"/><circle cx="102" cy="78" r="3"/>
+          </g>
+          <!-- Mold Colony + Clear Inhibition Halo -->
+          <circle cx="88" cy="56" r="18" fill="#99F6E4" opacity="0.55" stroke="#14B8A6" stroke-dasharray="3 2"/>
+          <circle cx="88" cy="56" r="9" fill="#0F766E"/>
+          <circle cx="85" cy="54" r="3" fill="#5EEAD4"/>
+          <!-- Microscope Silhouette -->
+          <g transform="translate(148, 22)" fill="#1E293B">
+            <rect x="-4" y="6" width="12" height="34" rx="2" transform="rotate(18 2 22)"/>
+            <path d="M12,34 C26,42 26,64 12,74 L4,68 C14,60 14,46 4,40 Z"/>
+            <rect x="-12" y="54" width="24" height="5" rx="2"/>
+            <rect x="-14" y="74" width="38" height="8" rx="3"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'eniac-computer',
+        title: 'ENIAC Electronic Computer',
+        date: '1945',
+        era: 'Modern',
+        nodeColor: '#4F46E5',
+        fact: 'Built at the University of Pennsylvania with nearly 18,000 vacuum tubes, ENIAC was the first programmable, electronic, general-purpose digital computer—filling an entire room.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#1E293B"/>
+          <!-- Mainframe Cabinets -->
+          <rect x="16" y="16" width="50" height="90" rx="4" fill="#334155" stroke="#64748B" stroke-width="2"/>
+          <rect x="75" y="16" width="50" height="90" rx="4" fill="#334155" stroke="#64748B" stroke-width="2"/>
+          <rect x="134" y="16" width="50" height="90" rx="4" fill="#334155" stroke="#64748B" stroke-width="2"/>
+          <!-- Blinking Indicator Lights -->
+          <g>
+            <circle cx="28" cy="30" r="3.5" fill="#EF4444"/><circle cx="41" cy="30" r="3.5" fill="#FACC15"/><circle cx="54" cy="30" r="3.5" fill="#22C55E"/>
+            <circle cx="28" cy="42" r="3.5" fill="#22C55E"/><circle cx="41" cy="42" r="3.5" fill="#38BDF8"/><circle cx="54" cy="42" r="3.5" fill="#FACC15"/>
+            <circle cx="87" cy="30" r="3.5" fill="#FACC15"/><circle cx="100" cy="30" r="3.5" fill="#EF4444"/><circle cx="113" cy="30" r="3.5" fill="#22C55E"/>
+            <circle cx="146" cy="30" r="3.5" fill="#38BDF8"/><circle cx="159" cy="30" r="3.5" fill="#22C55E"/><circle cx="172" cy="30" r="3.5" fill="#EF4444"/>
+          </g>
+          <!-- Vacuum Tube Dials & Patch Cables -->
+          <rect x="83" y="44" width="34" height="22" rx="3" fill="#0F172A" stroke="#475569"/>
+          <polyline points="87,56 93,50 99,60 105,52 113,56" fill="none" stroke="#34D399" stroke-width="2"/>
+          <path d="M26,70 Q54,96 90,78" fill="none" stroke="#F97316" stroke-width="2.5"/>
+          <path d="M110,76 Q134,98 164,74" fill="none" stroke="#38BDF8" stroke-width="2.5"/>
+          <rect x="24" y="88" width="34" height="10" rx="2" fill="#1E293B"/>
+          <rect x="142" y="88" width="34" height="10" rx="2" fill="#1E293B"/>
+        </svg>`
+      },
+      {
+        id: 'dna-double-helix',
+        title: 'DNA Double Helix',
+        date: '1953',
+        era: 'Modern',
+        nodeColor: '#DB2777',
+        fact: 'Building on Rosalind Franklin’s X-ray diffraction images, James Watson and Francis Crick described the double-helix structure of DNA, revealing how genetic information is copied.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g16bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B0764"/><stop offset="100%" stop-color="#1E1B4B"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g16bg)"/>
+          <!-- Base Pair Rungs -->
+          <g stroke-width="4" stroke-linecap="round">
+            <line x1="36" y1="40" x2="36" y2="80" stroke="#F472B6"/>
+            <line x1="56" y1="46" x2="56" y2="74" stroke="#38BDF8"/>
+            <line x1="88" y1="46" x2="88" y2="74" stroke="#34D399"/>
+            <line x1="108" y1="40" x2="108" y2="80" stroke="#FBBF24"/>
+            <line x1="128" y1="46" x2="128" y2="74" stroke="#F472B6"/>
+            <line x1="160" y1="46" x2="160" y2="74" stroke="#38BDF8"/>
+          </g>
+          <!-- Twisting Backbones -->
+          <path d="M16,38 C44,38 56,82 84,82 C112,82 124,38 152,38 C170,38 180,56 188,68" fill="none" stroke="#38BDF8" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M16,82 C44,82 56,38 84,38 C112,38 124,82 152,82 C170,82 180,64 188,52" fill="none" stroke="#EC4899" stroke-width="5.5" stroke-linecap="round"/>
+        </svg>`
+      },
+      {
+        id: 'apollo-moon-landing',
+        title: 'Apollo 11 Moon Landing',
+        date: '1969',
+        era: 'Modern',
+        nodeColor: '#2563EB',
+        fact: 'On July 20, 1969, Neil Armstrong and Buzz Aldrin landed the Lunar Module Eagle on the Sea of Tranquility as over 600 million people watched humanity’s first steps on the Moon.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#0F172A"/>
+          <circle cx="22" cy="18" r="1.2" fill="#FFF"/><circle cx="58" cy="12" r="1" fill="#FFF"/><circle cx="94" cy="24" r="1.4" fill="#FFF"/><circle cx="176" cy="18" r="1.2" fill="#FFF"/>
+          <circle cx="164" cy="28" r="14" fill="#2563EB"/>
+          <path d="M156,22 Q164,18 170,24 Q166,30 160,28 Z" fill="#22C55E"/>
+          <path d="M0,90 Q100,76 200,92 L200,120 L0,120 Z" fill="#CBD5E1"/>
+          <ellipse cx="42" cy="104" rx="14" ry="4" fill="#94A3B8"/><ellipse cx="152" cy="102" rx="18" ry="5" fill="#94A3B8"/>
+          <line x1="76" y1="74" x2="62" y2="94" stroke="#E2E8F0" stroke-width="2.5"/>
+          <line x1="112" y1="74" x2="126" y2="94" stroke="#E2E8F0" stroke-width="2.5"/>
+          <line x1="94" y1="78" x2="94" y2="94" stroke="#E2E8F0" stroke-width="2.5"/>
+          <rect x="74" y="60" width="40" height="18" rx="3" fill="#F59E0B" stroke="#B45309" stroke-width="1.5"/>
+          <polygon points="80,60 86,42 102,42 108,60" fill="#E2E8F0" stroke="#64748B" stroke-width="1.5"/>
+          <rect x="89" y="48" width="10" height="6" rx="1" fill="#1E293B"/>
+          <line x1="142" y1="62" x2="142" y2="92" stroke="#F8FAFC" stroke-width="2"/>
+          <rect x="142" y="63" width="22" height="13" fill="#EF4444"/>
+          <rect x="142" y="63" width="9" height="7" fill="#1D4ED8"/>
+        </svg>`
+      },
+      {
+        id: 'world-wide-web',
+        title: 'World Wide Web',
+        date: '1989',
+        era: 'Digital',
+        nodeColor: '#0EA5E9',
+        fact: 'Tim Berners-Lee invented the World Wide Web at CERN in 1989, creating HTML, HTTP, and URLs so people everywhere could link and share information across the Internet.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g18bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#1E3A8A"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g18bg)"/>
+          <g stroke="#38BDF8" stroke-width="1.5" opacity="0.55">
+            <line x1="34" y1="30" x2="88" y2="60"/><line x1="32" y1="92" x2="88" y2="60"/>
+          </g>
+          <g transform="translate(72, 60)">
+            <circle r="32" fill="#0EA5E9" fill-opacity="0.2" stroke="#38BDF8" stroke-width="2"/>
+            <ellipse rx="15" ry="32" fill="none" stroke="#38BDF8" stroke-width="1.5"/>
+            <line x1="-32" y1="0" x2="32" y2="0" stroke="#38BDF8" stroke-width="1.5"/>
+          </g>
+          <circle cx="34" cy="30" r="5.5" fill="#34D399"/><circle cx="32" cy="92" r="5.5" fill="#FBBF24"/>
+          <!-- Browser Window -->
+          <rect x="96" y="28" width="84" height="64" rx="7" fill="#FFFFFF" stroke="#38BDF8" stroke-width="2"/>
+          <rect x="96" y="28" width="84" height="15" rx="6" fill="#E2E8F0"/>
+          <circle cx="105" cy="35" r="2.5" fill="#EF4444"/><circle cx="113" cy="35" r="2.5" fill="#F59E0B"/><circle cx="121" cy="35" r="2.5" fill="#22C55E"/>
+          <text x="138" y="64" text-anchor="middle" font-size="14" font-weight="800" fill="#1D4ED8">WWW</text>
+          <rect x="110" y="72" width="56" height="6" rx="3" fill="#CBD5E1"/>
+        </svg>`
+      },
+      {
+        id: 'modern-smartphone',
+        title: 'First Modern Smartphone',
+        date: '2007',
+        era: 'Digital',
+        nodeColor: '#7C3AED',
+        fact: 'The 2007 debut of the first iPhone popularized capacitive multi-touch glass screens, mobile web browsing, and app stores—putting a pocket computer in billions of hands.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g19bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#EC4899"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g19bg)"/>
+          <path d="M138,34 Q150,42 146,56" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+          <path d="M146,26 Q164,38 158,60" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
+          <rect x="70" y="12" width="60" height="96" rx="11" fill="#0F172A" stroke="#E2E8F0" stroke-width="2.5"/>
+          <rect x="75" y="21" width="50" height="74" rx="4" fill="#1E293B"/>
+          <rect x="81" y="28" width="10" height="10" rx="2.5" fill="#38BDF8"/>
+          <rect x="95" y="28" width="10" height="10" rx="2.5" fill="#34D399"/>
+          <rect x="109" y="28" width="10" height="10" rx="2.5" fill="#FBBF24"/>
+          <rect x="81" y="43" width="10" height="10" rx="2.5" fill="#F472B6"/>
+          <rect x="95" y="43" width="10" height="10" rx="2.5" fill="#A78BFA"/>
+          <rect x="109" y="43" width="10" height="10" rx="2.5" fill="#FB7185"/>
+          <rect x="81" y="58" width="38" height="16" rx="3" fill="#334155"/>
+          <circle cx="100" cy="101" r="3.5" fill="#475569"/>
+        </svg>`
+      },
+      {
+        id: 'ai-datacenters',
+        title: 'AI Datacenters',
+        date: '2020s',
+        era: 'AI Era',
+        nodeColor: '#0891B2',
+        fact: 'Hyperscale AI datacenters unite thousands of specialized GPU accelerators and advanced liquid cooling to train and run modern artificial intelligence models across the globe.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g20bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#020617"/><stop offset="100%" stop-color="#0F172A"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g20bg)"/>
+          <!-- Server Racks -->
+          <rect x="18" y="38" width="38" height="74" rx="4" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+          <rect x="81" y="44" width="38" height="68" rx="4" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+          <rect x="144" y="38" width="38" height="74" rx="4" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+          <rect x="24" y="48" width="26" height="4" rx="2" fill="#22D3EE"/>
+          <rect x="24" y="60" width="26" height="4" rx="2" fill="#34D399"/>
+          <rect x="24" y="72" width="26" height="4" rx="2" fill="#818CF8"/>
+          <rect x="24" y="84" width="26" height="4" rx="2" fill="#22D3EE"/>
+          <rect x="87" y="54" width="26" height="4" rx="2" fill="#38BDF8"/>
+          <rect x="87" y="66" width="26" height="4" rx="2" fill="#A78BFA"/>
+          <rect x="87" y="78" width="26" height="4" rx="2" fill="#34D399"/>
+          <rect x="87" y="90" width="26" height="4" rx="2" fill="#38BDF8"/>
+          <rect x="150" y="48" width="26" height="4" rx="2" fill="#22D3EE"/>
+          <rect x="150" y="60" width="26" height="4" rx="2" fill="#818CF8"/>
+          <rect x="150" y="72" width="26" height="4" rx="2" fill="#34D399"/>
+          <rect x="150" y="84" width="26" height="4" rx="2" fill="#A78BFA"/>
+          <!-- Neural Network Circuit Brain Overhead -->
+          <g stroke="#38BDF8" stroke-width="1.6" opacity="0.85">
+            <line x1="66" y1="22" x2="100" y2="12"/><line x1="100" y1="12" x2="134" y2="22"/>
+            <line x1="66" y1="22" x2="100" y2="33"/><line x1="134" y1="22" x2="100" y2="33"/>
+            <line x1="100" y1="12" x2="100" y2="33"/>
+          </g>
+          <circle cx="66" cy="22" r="4.5" fill="#34D399"/>
+          <circle cx="100" cy="12" r="5.5" fill="#38BDF8"/>
+          <circle cx="134" cy="22" r="4.5" fill="#A78BFA"/>
+          <circle cx="100" cy="33" r="4.5" fill="#F472B6"/>
+        </svg>`
+      }
+    ];
+
+    /**
+     * CHECKPOINTS (Illuminate when all slots before them are locked correct)
+     */
+    const CHECKPOINTS = [
+      { id: 'cp1', label: 'Checkpoint 1', title: 'Dawn of Writing', afterSlotIndex: 4 },
+      { id: 'cp2', label: 'Checkpoint 2', title: 'Industrial Age', afterSlotIndex: 9 },
+      { id: 'cp3', label: 'Checkpoint 3', title: 'Information Age', afterSlotIndex: 14 }
+    ];
+
+    const BAR_ERA_LABELS = [
+      'Prehistory', 'Ancient', 'Classical', 'Medieval', 'Renaissance',
+      'Industrial', 'Modern', 'Digital', 'AI Era'
+    ];
+
+    // Layout geometry for horizontal alternating track
+    const START_X = 188;
+    const STEP_X = 166;
+    const CANVAS_WIDTH = START_X + (EVENTS.length - 1) * STEP_X + 210;
+
+    /**
+     * APPLICATION STATE
+     */
+    const state = {
+      mode: 'dates', // 'dates' | 'order'
+      slots: Array(EVENTS.length).fill(null),
+      lockedSlots: new Set(),
+      wrongSlots: new Set(),
+      unlockedCheckpoints: new Set(),
+      tray: [],
+      selected: null, // { source: 'tray'|'slot', id: string, slotIndex: number|null }
+      totalChecked: 0,
+      correctChecked: 0,
+      hintsUsed: 0,
+      timerSeconds: 0,
+      timerInterval: null,
+      timerStarted: false,
+      soundEnabled: true,
+      isVictory: false
+    };
+
+    /**
+     * WEB AUDIO API SYNTHESIZED SOUND EFFECTS
+     */
+    let audioCtx = null;
+    function playTone(type) {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+
+        const playNote = (freq, startOffset, duration, wave = 'triangle', vol = 0.12) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = wave;
+          osc.frequency.setValueAtTime(freq, now + startOffset);
+          gain.gain.setValueAtTime(vol, now + startOffset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + startOffset + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + startOffset);
+          osc.stop(now + startOffset + duration + 0.02);
+        };
+
+        if (type === 'place') {
+          playNote(440, 0, 0.07, 'sine', 0.1);
+          playNote(587, 0.04, 0.07, 'sine', 0.08);
+        } else if (type === 'correct') {
+          playNote(523.25, 0, 0.14, 'triangle', 0.13);
+          playNote(659.25, 0.08, 0.18, 'triangle', 0.13);
+        } else if (type === 'checkpoint') {
+          playNote(523.25, 0, 0.12, 'triangle', 0.14);
+          playNote(659.25, 0.09, 0.12, 'triangle', 0.14);
+          playNote(783.99, 0.18, 0.25, 'triangle', 0.15);
+        } else if (type === 'wrong') {
+          playNote(210, 0, 0.16, 'sawtooth', 0.07);
+          playNote(165, 0.08, 0.16, 'sawtooth', 0.07);
+        } else if (type === 'victory') {
+          [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, idx) => {
+            playNote(f, idx * 0.1, 0.34, 'triangle', 0.14);
+          });
+        }
+      } catch (e) {
+        // Ignore audio restrictions
+      }
+    }
+
+    /**
+     * HELPERS
+     */
+    function getEventById(id) {
+      return EVENTS.find(e => e.id === id);
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function formatTime(secs) {
+      const m = String(Math.floor(secs / 60)).padStart(2, '0');
+      const s = String(secs % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startTimerIfNeeded() {
+      if (state.timerStarted || state.isVictory) return;
+      state.timerStarted = true;
+      state.timerInterval = setInterval(() => {
+        state.timerSeconds++;
+        document.getElementById('stat-timer').textContent = formatTime(state.timerSeconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+    }
+
+    function showToast(msg, variant = 'info') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = `toast ${variant}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+        setTimeout(() => el.remove(), 300);
+      }, 2600);
+    }
+
+    function scrollToSlot(slotIndex) {
+      const scroller = document.getElementById('timeline-scroller');
+      const targetX = START_X + slotIndex * STEP_X;
+      const desiredLeft = Math.max(0, targetX - scroller.clientWidth / 2 + 44);
+      scroller.scrollTo({ left: desiredLeft, behavior: 'smooth' });
+    }
+
+    /**
+     * CHECKPOINT STATUS
+     */
+    function isCheckpointUnlocked(cp) {
+      for (let i = 0; i <= cp.afterSlotIndex; i++) {
+        if (!state.lockedSlots.has(i)) return false;
+      }
+      return true;
+    }
+
+    function evaluateCheckpoints() {
+      let newlyUnlocked = null;
+      CHECKPOINTS.forEach((cp) => {
+        if (isCheckpointUnlocked(cp) && !state.unlockedCheckpoints.has(cp.id)) {
+          state.unlockedCheckpoints.add(cp.id);
+          newlyUnlocked = cp;
+        }
+      });
+      return newlyUnlocked;
+    }
+
+    /**
+     * INITIALIZE / RESET GAME
+     */
+    function initGame() {
+      stopTimer();
+      state.slots = Array(EVENTS.length).fill(null);
+      state.lockedSlots = new Set();
+      state.wrongSlots = new Set();
+      state.unlockedCheckpoints = new Set();
+      state.tray = shuffle(EVENTS.map(e => e.id));
+      state.selected = null;
+      state.totalChecked = 0;
+      state.correctChecked = 0;
+      state.hintsUsed = 0;
+      state.timerSeconds = 0;
+      state.timerStarted = false;
+      state.isVictory = false;
+
+      document.getElementById('stat-timer').textContent = '00:00';
+      document.getElementById('victory-modal').classList.remove('open');
+      document.getElementById('timeline-scroller').scrollTo({ left: 0, behavior: 'smooth' });
+      updateInstructionText();
+      renderAll();
+    }
+
+    function updateInstructionText() {
+      const el = document.getElementById('instruction-text');
+      if (state.mode === 'dates') {
+        el.textContent = 'Match each vector card to its historical date on the alternating timeline (~66M BCE → 2020s).';
+      } else {
+        el.textContent = 'Pure Order Challenge: Dates are hidden! Place all 20 events from oldest (#1) to newest (#20).';
+      }
+    }
+
+    /**
+     * RENDERING
+     */
+    function renderAll() {
+      renderStats();
+      renderSelectionBanner();
+      renderTimeline();
+      renderTray();
+    }
+
+    function renderStats() {
+      const placedCount = state.slots.filter(Boolean).length;
+      const correctCount = state.lockedSlots.size;
+      document.getElementById('stat-placed').textContent = placedCount;
+      document.getElementById('stat-correct').textContent = correctCount;
+
+      const pct = Math.round((correctCount / EVENTS.length) * 100);
+      document.getElementById('top-progress-fill').style.width = `${pct}%`;
+
+      const accEl = document.getElementById('stat-accuracy');
+      if (state.totalChecked === 0) {
+        accEl.textContent = '--';
+      } else {
+        accEl.textContent = `${Math.round((state.correctChecked / state.totalChecked) * 100)}%`;
+      }
+
+      const rem = state.tray.length;
+      document.getElementById('tray-count-label').textContent =
+        rem === 0 ? 'All 20 cards placed on timeline!' : `${rem} card${rem === 1 ? '' : 's'} remaining`;
+    }
+
+    function renderSelectionBanner() {
+      const banner = document.getElementById('selection-banner');
+      if (!state.selected) {
+        banner.classList.remove('visible');
+        return;
+      }
+      const ev = getEventById(state.selected.id);
+      document.getElementById('selection-banner-text').textContent =
+        `Selected "${ev.title}" — tap any open timeline slot to place or swap it.`;
+      banner.classList.add('visible');
+    }
+
+    /**
+     * Build a Vector Picture Card
+     */
+    function createVectorCard(eventId, location, slotIndex = null) {
+      const ev = getEventById(eventId);
+      const isLocked = location === 'slot' && state.lockedSlots.has(slotIndex);
+      const isSelected = state.selected && state.selected.id === eventId;
+
+      const card = document.createElement('div');
+      card.className = 'vector-card' + (isLocked ? ' locked' : '') + (isSelected ? ' selected' : '');
+      card.draggable = !isLocked;
+
+      const art = document.createElement('div');
+      art.className = 'card-art';
+      art.innerHTML = ev.svg;
+
+      // Locked emerald checkmark
+      if (isLocked) {
+        const check = document.createElement('div');
+        check.className = 'card-check-badge';
+        check.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        art.appendChild(check);
+      }
+
+      // Info ("i") button on placed cards
+      if (location === 'slot') {
+        const infoBtn = document.createElement('button');
+        infoBtn.type = 'button';
+        infoBtn.className = 'card-info-btn';
+        infoBtn.textContent = 'i';
+        infoBtn.title = 'Read historical fact';
+        infoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openFactModal(eventId, isLocked || state.mode === 'dates' || state.isVictory);
+        });
+        art.appendChild(infoBtn);
+      }
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = ev.title;
+
+      card.appendChild(art);
+      card.appendChild(title);
+
+      // HTML5 Drag Events
+      if (!isLocked) {
+        card.addEventListener('dragstart', (e) => {
+          startTimerIfNeeded();
+          state.selected = null;
+          renderSelectionBanner();
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('application/json', JSON.stringify({
+            id: eventId,
+            source: location,
+            slotIndex
+          }));
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+        });
+      }
+
+      // Tap / Click Interaction
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startTimerIfNeeded();
+
+        if (isLocked) {
+          openFactModal(eventId, true);
+          return;
+        }
+
+        if (!state.selected) {
+          state.selected = { source: location, id: eventId, slotIndex };
+          renderAll();
+          return;
+        }
+
+        if (state.selected.id === eventId) {
+          state.selected = null;
+          renderAll();
+          return;
+        }
+
+        if (location === 'slot') {
+          moveCardToSlot(state.selected, slotIndex);
+        } else {
+          state.selected = { source: 'tray', id: eventId, slotIndex: null };
+          renderAll();
+        }
+      });
+
+      return card;
+    }
+
+    /**
+     * Render Horizontal Alternating Infographic Timeline
+     */
+    function renderTimeline() {
+      const canvas = document.getElementById('timeline-canvas');
+      canvas.style.width = `${CANVAS_WIDTH}px`;
+      canvas.innerHTML = '';
+
+      // 1. Central Sage-Green Arrow Bar with Era Labels
+      const barWrap = document.createElement('div');
+      barWrap.className = 'center-bar-wrapper';
+      barWrap.innerHTML = `
+        <div class="center-bar-body">
+          ${BAR_ERA_LABELS.map(era => `<span class="bar-era-label">${era}</span>`).join('')}
+        </div>
+        <div class="center-bar-arrow"></div>
+      `;
+      canvas.appendChild(barWrap);
+
+      // 2. Start & End Red Diamond Markers
+      const startMarker = document.createElement('div');
+      startMarker.className = 'endpoint-marker start';
+      startMarker.innerHTML = `
+        <div class="endpoint-label">
+          <div class="endpoint-title">Timeline Start</div>
+          <div class="endpoint-date">~66M BCE</div>
+        </div>
+        <div class="red-diamond"></div>
+      `;
+      canvas.appendChild(startMarker);
+
+      const endMarker = document.createElement('div');
+      endMarker.className = 'endpoint-marker end';
+      endMarker.innerHTML = `
+        <div class="red-diamond"></div>
+        <div class="endpoint-label">
+          <div class="endpoint-title">Timeline End</div>
+          <div class="endpoint-date">2020s</div>
+        </div>
+      `;
+      canvas.appendChild(endMarker);
+
+      // 3. Three Green Chevron Checkpoints
+      CHECKPOINTS.forEach((cp) => {
+        const unlocked = isCheckpointUnlocked(cp);
+        const cpX = START_X + (cp.afterSlotIndex + 0.5) * STEP_X;
+        const cpEl = document.createElement('div');
+        cpEl.className = 'checkpoint-marker' + (unlocked ? ' unlocked' : '');
+        cpEl.style.left = `${cpX}px`;
+        cpEl.innerHTML = `
+          <div class="checkpoint-label-box">
+            <div class="checkpoint-kicker">${cp.label}${unlocked ? ' ✓' : ''}</div>
+            <div class="checkpoint-name">${cp.title}</div>
+          </div>
+          <svg class="checkpoint-chevron" viewBox="0 0 28 22" fill="currentColor">
+            <polygon points="14,2 27,14 27,21 14,10 1,21 1,14"/>
+          </svg>
+        `;
+        canvas.appendChild(cpEl);
+      });
+
+      // 4. 20 Alternating Drop-Zone Slots
+      // Odd slots (#1, #3, #5... -> idx 0, 2, 4...) hang BELOW the bar
+      // Even slots (#2, #4, #6... -> idx 1, 3, 5...) sit ABOVE the bar
+      EVENTS.forEach((ev, idx) => {
+        const slotNum = idx + 1;
+        const isAbove = slotNum % 2 === 0;
+        const xPos = START_X + idx * STEP_X;
+        const placedId = state.slots[idx];
+        const isLocked = state.lockedSlots.has(idx);
+        const isWrong = state.wrongSlots.has(idx);
+        const showDate = state.mode === 'dates' || isLocked || state.isVictory;
+
+        const unit = document.createElement('div');
+        unit.className = `timeline-node-unit ${isAbove ? 'is-above' : 'is-below'}`;
+        unit.style.left = `${xPos}px`;
+
+        // Drop-Zone Slot Box
+        const slotEl = document.createElement('div');
+        slotEl.className = [
+          'timeline-slot',
+          placedId ? 'is-filled' : '',
+          isLocked ? 'is-locked' : '',
+          isWrong ? 'is-wrong' : '',
+          state.selected && !isLocked ? 'target-ready' : ''
+        ].filter(Boolean).join(' ');
+        slotEl.dataset.slotIndex = idx;
+
+        // Slot Header (# and Date)
+        const header = document.createElement('div');
+        header.className = 'slot-header';
+        header.innerHTML = `
+          <span class="slot-num">#${slotNum}</span>
+          <span class="slot-date ${showDate ? '' : 'is-hidden'}">${showDate ? ev.date : '???'}</span>
+        `;
+        slotEl.appendChild(header);
+
+        // Slot Body
+        const body = document.createElement('div');
+        body.className = 'slot-body';
+        if (placedId) {
+          body.appendChild(createVectorCard(placedId, 'slot', idx));
+        } else {
+          body.innerHTML = `
+            <div class="slot-empty-placeholder">
+              <div class="slot-empty-plus">+</div>
+              <div class="slot-empty-label">${state.selected ? 'Tap to place' : 'Drop vector'}</div>
+            </div>
+          `;
+        }
+        slotEl.appendChild(body);
+
+        // Drag & Drop Listeners on Slot
+        slotEl.addEventListener('dragover', (e) => {
+          if (state.lockedSlots.has(idx)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          slotEl.classList.add('drag-over');
+        });
+        slotEl.addEventListener('dragleave', () => {
+          slotEl.classList.remove('drag-over');
+        });
+        slotEl.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slotEl.classList.remove('drag-over');
+          if (state.lockedSlots.has(idx)) return;
+          try {
+            const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+            moveCardToSlot(payload, idx);
+          } catch (err) {
+            // Ignore
+          }
+        });
+
+        // Tap-to-Place Listener on Slot
+        slotEl.addEventListener('click', () => {
+          if (state.lockedSlots.has(idx)) return;
+          if (state.selected) {
+            moveCardToSlot(state.selected, idx);
+          }
+        });
+
+        // Stem & Square Node
+        const stem = document.createElement('div');
+        stem.className = 'slot-stem';
+        stem.style.backgroundColor = isLocked ? '#10B981' : ev.nodeColor;
+
+        const sqNode = document.createElement('div');
+        sqNode.className = 'bar-square-node';
+        sqNode.style.backgroundColor = isLocked ? '#10B981' : ev.nodeColor;
+
+        // Order inside flex container:
+        // is-above (flex-direction: column): [Slot] -> [Stem] -> [Square Node on top edge of bar]
+        // is-below (flex-direction: column-reverse): [Square Node on bottom edge of bar] -> [Stem] -> [Slot]
+        unit.appendChild(slotEl);
+        unit.appendChild(stem);
+        unit.appendChild(sqNode);
+
+        canvas.appendChild(unit);
+      });
+    }
+
+    /**
+     * Render Shuffled Vector Card Tray
+     */
+    function renderTray() {
+      const trayEl = document.getElementById('card-tray');
+      trayEl.innerHTML = '';
+
+      if (state.tray.length === 0) {
+        trayEl.innerHTML = `
+          <div class="tray-empty-msg">
+            <strong style="color: var(--status-ok); font-size: 0.92rem;">All 20 vector cards are on the timeline!</strong>
+            <span style="font-size: 0.78rem;">Click <strong>Check Timeline</strong> above to verify your chronological order.</span>
+          </div>
+        `;
+        return;
+      }
+
+      state.tray.forEach((eventId) => {
+        trayEl.appendChild(createVectorCard(eventId, 'tray', null));
+      });
+    }
+
+    /**
+     * CARD MOVEMENT & SWAPPING
+     */
+    function moveCardToSlot(dragged, targetIdx) {
+      if (state.lockedSlots.has(targetIdx)) return;
+      startTimerIfNeeded();
+
+      const existingTargetId = state.slots[targetIdx];
+      state.wrongSlots.delete(targetIdx);
+      if (dragged.source === 'slot' && dragged.slotIndex !== null) {
+        state.wrongSlots.delete(dragged.slotIndex);
+      }
+
+      if (dragged.source === 'tray') {
+        state.tray = state.tray.filter(id => id !== dragged.id);
+        if (existingTargetId) state.tray.push(existingTargetId);
+        state.slots[targetIdx] = dragged.id;
+      } else if (dragged.source === 'slot') {
+        const fromIdx = dragged.slotIndex;
+        if (fromIdx === targetIdx) {
+          state.selected = null;
+          renderAll();
+          return;
+        }
+        state.slots[targetIdx] = dragged.id;
+        state.slots[fromIdx] = existingTargetId;
+      }
+
+      state.selected = null;
+      playTone('place');
+      renderAll();
+    }
+
+    function returnCardToTray(dragged) {
+      if (dragged.source !== 'slot') return;
+      const fromIdx = dragged.slotIndex;
+      if (state.lockedSlots.has(fromIdx)) return;
+
+      state.slots[fromIdx] = null;
+      state.wrongSlots.delete(fromIdx);
+      if (!state.tray.includes(dragged.id)) {
+        state.tray.push(dragged.id);
+      }
+      state.selected = null;
+      playTone('place');
+      renderAll();
+    }
+
+    /**
+     * CHECK TIMELINE
+     */
+    function checkTimeline() {
+      startTimerIfNeeded();
+
+      const filledUnlocked = [];
+      for (let i = 0; i < EVENTS.length; i++) {
+        if (!state.lockedSlots.has(i) && state.slots[i] !== null) {
+          filledUnlocked.push(i);
+        }
+      }
+
+      if (filledUnlocked.length === 0) {
+        if (state.lockedSlots.size === EVENTS.length) {
+          showVictoryModal();
+        } else {
+          showToast('Place at least one vector card on the timeline first!', 'warning');
+        }
+        return;
+      }
+
+      let newlyCorrect = 0;
+      let newlyWrong = 0;
+      const wrongIndices = [];
+
+      filledUnlocked.forEach((idx) => {
+        state.totalChecked++;
+        if (state.slots[idx] === EVENTS[idx].id) {
+          state.lockedSlots.add(idx);
+          state.wrongSlots.delete(idx);
+          state.correctChecked++;
+          newlyCorrect++;
+        } else {
+          state.wrongSlots.add(idx);
+          newlyWrong++;
+          wrongIndices.push(idx);
+        }
+      });
+
+      const unlockedCp = evaluateCheckpoints();
+      state.selected = null;
+      renderAll();
+
+      // Shake wrong slots
+      const slotNodes = document.querySelectorAll('.timeline-slot');
+      wrongIndices.forEach((idx) => {
+        const node = slotNodes[idx];
+        if (node) {
+          node.classList.remove('animate-shake');
+          void node.offsetWidth;
+          node.classList.add('animate-shake');
+        }
+      });
+
+      if (state.lockedSlots.size === EVENTS.length) {
+        triggerVictory();
+      } else if (unlockedCp) {
+        playTone('checkpoint');
+        showToast(`${unlockedCp.label} (${unlockedCp.title}) Unlocked!`, 'success');
+      } else if (newlyWrong === 0 && newlyCorrect > 0) {
+        playTone('correct');
+        showToast(`Awesome! ${newlyCorrect} milestone${newlyCorrect > 1 ? 's' : ''} locked in place.`, 'success');
+      } else if (newlyCorrect > 0 && newlyWrong > 0) {
+        playTone('wrong');
+        showToast(`${newlyCorrect} correct! Adjust the ${newlyWrong} red-highlighted slot${newlyWrong > 1 ? 's' : ''}.`, 'warning');
+      } else {
+        playTone('wrong');
+        showToast(`${newlyWrong} card${newlyWrong > 1 ? 's are' : ' is'} out of order. Try swapping them!`, 'error');
+      }
+    }
+
+    /**
+     * HINT SYSTEM (Auto-places one unplaced or misplaced card & smoothly scrolls to it)
+     */
+    function useHint() {
+      if (state.isVictory) return;
+      startTimerIfNeeded();
+
+      const targetIdx = EVENTS.findIndex((_, i) => !state.lockedSlots.has(i));
+      if (targetIdx === -1) return;
+
+      const correctEv = EVENTS[targetIdx];
+      const correctId = correctEv.id;
+
+      const inTray = state.tray.includes(correctId);
+      const currentSlotIdx = state.slots.indexOf(correctId);
+      const occupantId = state.slots[targetIdx];
+
+      if (inTray) {
+        state.tray = state.tray.filter(id => id !== correctId);
+      } else if (currentSlotIdx !== -1 && currentSlotIdx !== targetIdx) {
+        state.slots[currentSlotIdx] = null;
+        state.wrongSlots.delete(currentSlotIdx);
+      }
+
+      if (occupantId && occupantId !== correctId) {
+        state.tray.push(occupantId);
+      }
+
+      state.slots[targetIdx] = correctId;
+      state.lockedSlots.add(targetIdx);
+      state.wrongSlots.delete(targetIdx);
+      state.hintsUsed++;
+      state.selected = null;
+
+      const unlockedCp = evaluateCheckpoints();
+      renderAll();
+      scrollToSlot(targetIdx);
+
+      const slotNode = document.querySelectorAll('.timeline-slot')[targetIdx];
+      if (slotNode) slotNode.classList.add('animate-lock-pulse');
+
+      if (unlockedCp) {
+        playTone('checkpoint');
+        showToast(`Hint placed #${targetIdx + 1} (${correctEv.title}) & unlocked ${unlockedCp.label}!`, 'success');
+      } else {
+        playTone('correct');
+        showToast(`Hint: "${correctEv.title}" placed at #${targetIdx + 1} (${correctEv.date})`, 'info');
+      }
+
+      if (state.lockedSlots.size === EVENTS.length) {
+        setTimeout(triggerVictory, 550);
+      }
+    }
+
+    /**
+     * FACT MODAL
+     */
+    function openFactModal(eventId, revealDate) {
+      const ev = getEventById(eventId);
+      if (!ev) return;
+
+      document.getElementById('fact-modal-art').innerHTML = ev.svg;
+      document.getElementById('fact-modal-title').textContent = ev.title;
+      document.getElementById('fact-modal-era').textContent = ev.era;
+      document.getElementById('fact-modal-date').textContent = revealDate ? ev.date : 'Date Hidden (Pure Order)';
+      document.getElementById('fact-modal-text').textContent = ev.fact;
+      document.getElementById('fact-modal').classList.add('open');
+    }
+
+    function closeFactModal() {
+      document.getElementById('fact-modal').classList.remove('open');
+    }
+
+    /**
+     * VICTORY & CONFETTI
+     */
+    function triggerVictory() {
+      state.isVictory = true;
+      stopTimer();
+      playTone('victory');
+      renderAll();
+      launchConfetti();
+      setTimeout(showVictoryModal, 480);
+    }
+
+    function showVictoryModal() {
+      const acc = state.totalChecked === 0
+        ? 100
+        : Math.round((state.correctChecked / state.totalChecked) * 100);
+
+      let stars = 3;
+      if (state.hintsUsed >= 4 || acc < 65) stars = 1;
+      else if (state.hintsUsed >= 1 || acc < 85) stars = 2;
+
+      const starsWrap = document.getElementById('victory-stars');
+      starsWrap.innerHTML = '';
+      for (let i = 1; i <= 3; i++) {
+        const color = i <= stars ? '#F59E0B' : '#E2E8F0';
+        starsWrap.innerHTML += `
+          <svg width="38" height="38" fill="${color}" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        `;
+      }
+
+      document.getElementById('victory-time').textContent = formatTime(state.timerSeconds);
+      document.getElementById('victory-accuracy').textContent = `${acc}%`;
+      document.getElementById('victory-hints').textContent = state.hintsUsed;
+      document.getElementById('victory-modal').classList.add('open');
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#4F46E5', '#10B981', '#F59E0B', '#EC4899', '#0EA5E9', '#8B5CF6'];
+      const particles = Array.from({ length: 150 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height * 0.6,
+        w: 6 + Math.random() * 6,
+        h: 4 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 3.8,
+        vy: 2.5 + Math.random() * 4.2,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.22
+      }));
+
+      let frames = 0;
+      function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        particles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vRot;
+          if (p.y < canvas.height + 20) active = true;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        frames++;
+        if (active && frames < 260) {
+          requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    /**
+     * WIRE UP CONTROLS & EVENTS
+     */
+    function setupEvents() {
+      // Mode Switcher
+      const btnDates = document.getElementById('mode-dates-btn');
+      const btnOrder = document.getElementById('mode-order-btn');
+
+      function setMode(m) {
+        if (state.mode === m) return;
+        state.mode = m;
+        btnDates.classList.toggle('active', m === 'dates');
+        btnOrder.classList.toggle('active', m === 'order');
+        initGame();
+        showToast(m === 'dates' ? 'Mode: Match the Dates' : 'Mode: Pure Order Challenge', 'info');
+      }
+
+      btnDates.addEventListener('click', () => setMode('dates'));
+      btnOrder.addEventListener('click', () => setMode('order'));
+
+      // Header Actions
+      document.getElementById('check-btn').addEventListener('click', checkTimeline);
+      document.getElementById('hint-btn').addEventListener('click', useHint);
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        initGame();
+        showToast('Timeline reset and all 20 vector cards shuffled!', 'info');
+      });
+
+      document.getElementById('cancel-selection-btn').addEventListener('click', () => {
+        state.selected = null;
+        renderAll();
+      });
+
+      // Sound Toggle
+      document.getElementById('sound-btn').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById('icon-sound-on').style.display = state.soundEnabled ? 'block' : 'none';
+        document.getElementById('icon-sound-off').style.display = state.soundEnabled ? 'none' : 'block';
+      });
+
+      // Horizontal Timeline Scroll Buttons + Mouse Wheel Horizontal Scroll
+      const scroller = document.getElementById('timeline-scroller');
+      document.getElementById('scroll-left-btn').addEventListener('click', () => {
+        scroller.scrollBy({ left: -460, behavior: 'smooth' });
+      });
+      document.getElementById('scroll-right-btn').addEventListener('click', () => {
+        scroller.scrollBy({ left: 460, behavior: 'smooth' });
+      });
+
+      scroller.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          scroller.scrollLeft += e.deltaY * 1.15;
+        }
+      }, { passive: false });
+
+      // Tray Drop Zone (return placed card to tray)
+      const trayEl = document.getElementById('card-tray');
+      trayEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        trayEl.classList.add('drag-over');
+      });
+      trayEl.addEventListener('dragleave', () => {
+        trayEl.classList.remove('drag-over');
+      });
+      trayEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        trayEl.classList.remove('drag-over');
+        try {
+          const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+          returnCardToTray(payload);
+        } catch (err) {
+          // Ignore
+        }
+      });
+      trayEl.addEventListener('click', () => {
+        if (state.selected && state.selected.source === 'slot') {
+          returnCardToTray(state.selected);
+        }
+      });
+
+      // Modals
+      document.getElementById('close-fact-btn').addEventListener('click', closeFactModal);
+      document.getElementById('fact-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'fact-modal') closeFactModal();
+      });
+
+      document.getElementById('victory-inspect-btn').addEventListener('click', () => {
+        document.getElementById('victory-modal').classList.remove('open');
+        showToast('Click any locked card or its "i" button to read its historical fact!', 'info');
+      });
+      document.getElementById('victory-play-again-btn').addEventListener('click', initGame);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setupEvents();
+      initGame();
+    });
+  </script>
+</body>
+</html>
