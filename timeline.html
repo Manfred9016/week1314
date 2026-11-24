@@ -1,1485 +1,2965 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chronos // Time Travel - Interactive Lab</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Time Travel / Sci-Fi Dark Theme */
-            --bg-dark: #0d0f1a;
-            --panel-bg: #161a2b;
-            --neon-cyan: #00e5ff;
-            --neon-purple: #9933ff;
-            --neon-gold: #ffcc00;
-            --neon-green: #39ff14;
-            --neon-red: #ff3355;
-            --text-main: #f5f5f5;
-            --text-muted: #9aa4b8;
-            --radius-lg: 10px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chronos // History Timeline - Interactive Lab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ==========================================================================
+       CHRONOS // TIME TRAVEL DESIGN SYSTEM (MATCHING time.html)
+       ========================================================================== */
+    :root {
+      --bg-dark: #0d0f1a;
+      --panel-bg: #161a2b;
+      --neon-cyan: #00e5ff;
+      --neon-purple: #9933ff;
+      --neon-gold: #ffcc00;
+      --neon-green: #39ff14;
+      --neon-red: #ff3355;
+      --text-main: #f5f5f5;
+      --text-muted: #9aa4b8;
+      --radius-lg: 10px;
+    }
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
 
-        body {
-            margin: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            position: relative;
-            background-image:
-                radial-gradient(circle at 15% 25%, rgba(0, 229, 255, 0.08), transparent 35%),
-                radial-gradient(circle at 85% 75%, rgba(153, 51, 255, 0.08), transparent 35%),
-                radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.04), transparent 45%);
-        }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        #particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
+    body {
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
+      background-image:
+        radial-gradient(circle at 15% 25%, rgba(0, 229, 255, 0.08), transparent 35%),
+        radial-gradient(circle at 85% 75%, rgba(153, 51, 255, 0.08), transparent 35%),
+        radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.04), transparent 45%);
+    }
 
-        .header-banner {
-            background-color: rgba(13, 15, 26, 0.95);
-            border-bottom: 3px solid transparent;
-            border-image: linear-gradient(to right, var(--neon-cyan), var(--neon-purple), var(--neon-gold), var(--neon-cyan)) 1;
-            padding: 15px 24px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.12);
-            z-index: 10;
-        }
+    /* Full-Screen Animated Star / Time-Particle Background */
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .header-banner h1 {
-            margin: 0;
-            font-family: 'Playfair Display', serif;
-            font-size: 1.7rem;
-            font-weight: 900;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.65);
-        }
+    /* Victory Confetti Burst Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 990;
+    }
 
-        .stats {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-weight: bold;
-            font-size: 1.15rem;
-            font-family: 'Montserrat', sans-serif;
-            color: var(--neon-gold);
-            text-shadow: 0 0 8px rgba(255, 204, 0, 0.35);
-        }
+    /* ==========================================================================
+       TOP HEADER BANNER
+       ========================================================================== */
+    .header-banner {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background-color: rgba(13, 15, 26, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 3px solid transparent;
+      border-image: linear-gradient(to right, var(--neon-cyan), var(--neon-purple), var(--neon-gold), var(--neon-cyan)) 1;
+      padding: 13px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px 18px;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.12);
+    }
 
-        #app-container {
-            max-width: 920px;
-            width: 100%;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            position: relative;
-            z-index: 10;
-        }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
 
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-        }
+    .header-banner h1 {
+      margin: 0;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.65);
+      line-height: 1.15;
+    }
 
-        .level-card {
-            background: var(--panel-bg);
-            border: 1px solid rgba(0, 229, 255, 0.22);
-            border-radius: var(--radius-lg);
-            padding: 2rem 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-        }
+    .stats {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--neon-gold);
+      text-shadow: 0 0 8px rgba(255, 204, 0, 0.35);
+    }
 
-        .level-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--neon-cyan);
-            box-shadow: 0 8px 25px rgba(0, 229, 255, 0.22);
-        }
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 6px;
+      background: rgba(22, 26, 43, 0.9);
+      border: 1px solid rgba(255, 204, 0, 0.3);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
 
-        .level-card h2, .level-card h3 {
-            font-family: 'Playfair Display', serif;
-            color: var(--text-main);
-            margin-top: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .stat-chip.cyan {
+      color: var(--neon-cyan);
+      border-color: rgba(0, 229, 255, 0.32);
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+    }
 
-        .level-image {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid rgba(153, 51, 255, 0.35);
-            background-color: rgba(0, 0, 0, 0.45);
-        }
+    .stat-chip.muted-label span.lbl {
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-shadow: none;
+    }
 
-        .action-btn {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            padding: 13px 18px;
-            background: transparent;
-            border: 1px solid var(--neon-cyan);
-            border-radius: 6px;
-            cursor: pointer;
-            text-transform: uppercase;
-            color: var(--text-main);
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            margin-top: 1rem;
-        }
+    /* Mastery Progress Strip under Header */
+    .top-progress-track {
+      position: relative;
+      z-index: 39;
+      height: 3px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
 
-        .action-btn:hover:not(:disabled) {
-            background: var(--neon-cyan);
-            color: var(--bg-dark);
-            border-color: var(--neon-cyan);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.45);
-        }
+    .top-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-green));
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.75);
+      transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
 
-        .action-btn:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
+    /* ==========================================================================
+       ACTION BUTTONS (MATCHING time.html .action-btn)
+       ========================================================================== */
+    .action-btn {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 9px 14px;
+      background: transparent;
+      border: 1px solid var(--neon-cyan);
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-main);
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
 
-        .btn-correct {
-            background-color: rgba(57, 255, 20, 0.2) !important;
-            border-color: var(--neon-green) !important;
-            color: var(--neon-green) !important;
-        }
+    .action-btn:hover:not(:disabled) {
+      background: var(--neon-cyan);
+      color: var(--bg-dark);
+      border-color: var(--neon-cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.45);
+    }
 
-        .btn-wrong {
-            background-color: rgba(255, 51, 85, 0.2) !important;
-            border-color: var(--neon-red) !important;
-            color: var(--neon-red) !important;
-        }
+    .action-btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
 
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            margin-top: 2rem;
-        }
+    .action-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
 
-        .reading-container {
-            background: var(--panel-bg);
-            padding: 2rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid rgba(153, 51, 255, 0.3);
-            margin-bottom: 2rem;
-            line-height: 1.8;
-            font-size: 1.08rem;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
-        }
+    .action-btn.btn-back {
+      padding: 7px 12px;
+      font-size: 0.76rem;
+      border-color: rgba(0, 229, 255, 0.55);
+    }
 
-        .reading-container h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--neon-cyan);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .action-btn.btn-hint {
+      border-color: var(--neon-gold);
+      color: var(--neon-gold);
+    }
+    .action-btn.btn-hint:hover:not(:disabled) {
+      background: var(--neon-gold);
+      color: var(--bg-dark);
+      border-color: var(--neon-gold);
+      box-shadow: 0 0 15px rgba(255, 204, 0, 0.45);
+    }
 
-        .word-cloud {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 1.5rem;
-            padding: 1.1rem;
-            background: rgba(0, 229, 255, 0.04);
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 6px;
-        }
+    .action-btn.btn-purple {
+      border-color: var(--neon-purple);
+      color: #e4ccff;
+    }
+    .action-btn.btn-purple:hover:not(:disabled),
+    .action-btn.btn-purple.active {
+      background: var(--neon-purple);
+      color: #ffffff;
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 15px rgba(153, 51, 255, 0.5);
+    }
 
-        .cloud-word {
-            background: var(--bg-dark);
-            color: var(--text-main);
-            padding: 6px 12px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            border: 1px solid #384166;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            border-radius: 5px;
-        }
+    .action-btn.btn-muted {
+      border-color: #4a5680;
+      color: var(--text-muted);
+    }
+    .action-btn.btn-muted:hover:not(:disabled) {
+      background: rgba(0, 229, 255, 0.16);
+      color: var(--neon-cyan);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+    }
 
-        .cloud-word.found {
-            background: rgba(0, 229, 255, 0.2);
-            color: var(--neon-cyan);
-            border-color: var(--neon-cyan);
-            text-decoration: line-through;
-        }
+    .btn-correct {
+      background-color: rgba(57, 255, 20, 0.2) !important;
+      border-color: var(--neon-green) !important;
+      color: var(--neon-green) !important;
+      box-shadow: 0 0 14px rgba(57, 255, 20, 0.35) !important;
+    }
 
-        .interactive-word {
-            cursor: pointer;
-            padding: 0 2px;
-            border-bottom: 1px dotted #687399;
-            transition: color 0.2s;
-        }
+    .btn-wrong {
+      background-color: rgba(255, 51, 85, 0.2) !important;
+      border-color: var(--neon-red) !important;
+      color: var(--neon-red) !important;
+      box-shadow: 0 0 14px rgba(255, 51, 85, 0.35) !important;
+    }
 
-        .interactive-word:hover {
-            color: var(--neon-cyan);
-        }
+    /* ==========================================================================
+       MAIN WORKSPACE & CONTROL BAR
+       ========================================================================== */
+    .workspace {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      max-width: 1520px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-        .interactive-word.revealed {
-            color: var(--neon-gold);
-            font-weight: bold;
-            border-bottom: none;
-            text-shadow: 0 0 6px rgba(255, 204, 0, 0.4);
-        }
+    .control-bar {
+      background: var(--panel-bg);
+      border: 1px solid rgba(153, 51, 255, 0.32);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
 
-        hr {
-            border: 0;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.12);
-            margin: 1.8rem 0;
-        }
+    .mode-switch {
+      display: inline-flex;
+      background: var(--bg-dark);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid rgba(153, 51, 255, 0.4);
+      gap: 4px;
+    }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            border: 1px solid #44507a;
-            background: var(--bg-dark);
-            color: var(--text-main);
-            margin-top: 1rem;
-            text-align: center;
-            border-radius: 6px;
-        }
+    .mode-btn {
+      padding: 7px 13px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
 
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
-        }
+    .mode-btn:hover {
+      color: var(--text-main);
+    }
 
-        .flashcard-scene {
-            width: 100%;
-            height: 360px;
-            perspective: 1000px;
-            margin: 1.8rem 0;
-        }
+    .mode-btn.active {
+      background: rgba(153, 51, 255, 0.25);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(153, 51, 255, 0.45);
+    }
 
-        .flashcard {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
+    .actions-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
 
-        .flashcard.is-flipped {
-            transform: rotateY(180deg);
-        }
+    /* Selection Helper Banner for Tap-to-Place */
+    .selection-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(0, 229, 255, 0.14);
+      border: 1px solid var(--neon-cyan);
+      color: var(--text-main);
+      padding: 10px 16px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.22);
+      font-size: 0.86rem;
+      font-weight: 700;
+      animation: popIn 0.24s ease forwards;
+    }
 
-        .flashcard-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: var(--panel-bg);
-            border: 1px solid rgba(0, 229, 255, 0.35);
-            border-radius: var(--radius-lg);
-            font-family: 'Playfair Display', serif;
-            font-size: 2.2rem;
-            color: var(--text-main);
-            padding: 1.5rem;
-            text-align: center;
-        }
+    .selection-banner.visible {
+      display: flex;
+    }
 
-        .flashcard-back {
-            transform: rotateY(180deg);
-            background: var(--bg-dark);
-            border-color: var(--neon-purple);
-            justify-content: flex-start;
-            overflow-y: auto;
-        }
+    /* ==========================================================================
+       HORIZONTAL ALTERNATING INFOGRAPHIC TIMELINE (DARK NEON SCI-FI)
+       ========================================================================== */
+    .timeline-panel {
+      position: relative;
+      background: var(--panel-bg);
+      border: 1px solid rgba(0, 229, 255, 0.26);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+    }
 
-        .flashcard-examples {
-            margin-top: 15px;
-            font-size: 1.05rem;
-            color: var(--text-main);
-            text-align: left;
-            width: 100%;
-            border-top: 1px solid rgba(255, 255, 255, 0.14);
-            padding-top: 15px;
-            font-family: 'Montserrat', sans-serif;
-        }
+    .timeline-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(13, 15, 26, 0.72);
+      flex-wrap: wrap;
+    }
 
-        .example-en {
-            color: var(--neon-gold);
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
+    .timeline-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      flex-wrap: wrap;
+    }
 
-        .example-zh {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
+    .era-pill {
+      padding: 4px 11px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--neon-cyan);
+    }
 
-        .sentence-dropzone, .word-bank {
-            min-height: 80px;
-            border: 1px dashed #4a5680;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: var(--bg-dark);
-        }
+    .timeline-hint-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
 
-        .draggable-word {
-            padding: 10px 14px;
-            background: var(--panel-bg);
-            border: 1px solid rgba(0, 229, 255, 0.35);
-            border-radius: 6px;
-            color: var(--text-main);
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: bold;
-            transition: transform 0.15s, background 0.2s;
-            user-select: none;
-        }
+    .scroll-hint-badge {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--neon-gold);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
 
-        .draggable-word:hover {
-            background: rgba(0, 229, 255, 0.18);
-            transform: translateY(-2px);
-        }
+    /* Floating Left/Right Scroll Arrows */
+    .scroll-nav-btn {
+      position: absolute;
+      top: 54%;
+      transform: translateY(-50%);
+      z-index: 25;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(13, 15, 26, 0.9);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .scroll-nav-btn:hover {
+      background: var(--neon-cyan);
+      color: var(--bg-dark);
+      box-shadow: 0 0 22px rgba(0, 229, 255, 0.7);
+      transform: translateY(-50%) scale(1.08);
+    }
+    .scroll-nav-btn.left { left: 12px; }
+    .scroll-nav-btn.right { right: 12px; }
 
-        .concept-display-box {
-            min-height: 170px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid var(--neon-purple);
-            border-radius: 10px;
-            margin-bottom: 1.6rem;
-            padding: 1.5rem;
-        }
+    /* Scrollable Horizontal Container + Dark Neon Scrollbar */
+    .timeline-scroller {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      padding: 12px 46px 16px;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(0, 229, 255, 0.05) 0%, rgba(13, 15, 26, 0.85) 75%);
+      scrollbar-width: thin;
+      scrollbar-color: var(--neon-cyan) var(--bg-dark);
+    }
 
-        /* Non-blocking Toast Banner (replaces browser alert) */
-        #toast-banner {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(22, 26, 43, 0.96);
-            border: 1px solid var(--neon-cyan);
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            box-shadow: 0 8px 30px rgba(0, 229, 255, 0.3);
-            z-index: 999;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            text-align: center;
-        }
+    .timeline-scroller::-webkit-scrollbar {
+      height: 10px;
+    }
+    .timeline-scroller::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+      border-radius: 999px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .timeline-scroller::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+      border-radius: 999px;
+      border: 2px solid var(--bg-dark);
+    }
+    .timeline-scroller::-webkit-scrollbar-thumb:hover {
+      background: var(--neon-cyan);
+    }
 
-        #toast-banner.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
+    /* Fixed-height Infographic Canvas */
+    .timeline-canvas {
+      position: relative;
+      height: 518px;
+      min-width: 3560px;
+      user-select: none;
+    }
 
-        @keyframes popIn {
-            0% { transform: scale(0.98); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+    /* Central Sci-Fi Glass Horizontal Arrow Track */
+    .center-bar-wrapper {
+      position: absolute;
+      left: 72px;
+      right: 76px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 48px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+    }
 
-        .animate-pop {
-            animation: popIn 0.35s ease-out forwards;
-        }
+    .center-bar-body {
+      position: relative;
+      flex: 1;
+      height: 100%;
+      background: linear-gradient(90deg,
+        rgba(0, 229, 255, 0.14) 0%,
+        rgba(22, 26, 43, 0.92) 25%,
+        rgba(153, 51, 255, 0.18) 60%,
+        rgba(0, 229, 255, 0.18) 100%);
+      backdrop-filter: blur(8px);
+      border-top: 2px solid var(--neon-cyan);
+      border-bottom: 2px solid var(--neon-purple);
+      border-left: 2px solid var(--neon-cyan);
+      border-radius: 6px 0 0 6px;
+      box-shadow:
+        0 0 18px rgba(0, 229, 255, 0.22),
+        inset 0 0 18px rgba(153, 51, 255, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 38px 0 44px;
+    }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-        }
+    .center-bar-arrow {
+      width: 0;
+      height: 0;
+      border-top: 32px solid transparent;
+      border-bottom: 32px solid transparent;
+      border-left: 34px solid rgba(0, 229, 255, 0.85);
+      filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.75));
+      flex-shrink: 0;
+    }
 
-        .shake {
-            animation: shake 0.3s ease-in-out;
-        }
-    </style>
+    .bar-era-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: rgba(245, 245, 245, 0.88);
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.45);
+    }
+
+    /* Glowing Neon-Red Diamond Start & End Markers */
+    .endpoint-marker {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 12;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .endpoint-marker.start { left: 60px; }
+    .endpoint-marker.end { right: 98px; }
+
+    .red-diamond {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #ff5c77, var(--neon-red));
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 16px rgba(255, 51, 85, 0.85), 0 0 30px rgba(255, 51, 85, 0.45);
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+
+    .endpoint-label {
+      position: absolute;
+      white-space: nowrap;
+      text-align: center;
+      line-height: 1.25;
+    }
+
+    .endpoint-marker.start .endpoint-label { bottom: 34px; }
+    .endpoint-marker.end .endpoint-label { top: 34px; }
+
+    .endpoint-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.78rem;
+      font-weight: 900;
+      color: var(--neon-red);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 8px rgba(255, 51, 85, 0.6);
+    }
+
+    .endpoint-date {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--neon-gold);
+    }
+
+    /* Illuminating Neon-Green Chevron Checkpoints */
+    .checkpoint-marker {
+      position: absolute;
+      top: calc(50% - 24px);
+      transform: translate(-50%, -100%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      transition: all 0.35s ease;
+    }
+
+    .checkpoint-label-box {
+      background: rgba(13, 15, 26, 0.92);
+      border: 1px solid rgba(153, 51, 255, 0.55);
+      border-radius: 7px;
+      padding: 5px 10px;
+      text-align: center;
+      margin-bottom: 5px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+      transition: all 0.35s ease;
+    }
+
+    .checkpoint-kicker {
+      font-size: 0.64rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    .checkpoint-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .checkpoint-chevron {
+      width: 26px;
+      height: 20px;
+      color: #4a5680;
+      transition: transform 0.35s ease, color 0.35s ease, filter 0.35s ease;
+    }
+
+    .checkpoint-marker.unlocked .checkpoint-label-box {
+      background: rgba(57, 255, 20, 0.14);
+      border-color: var(--neon-green);
+      box-shadow: 0 0 18px rgba(57, 255, 20, 0.55);
+    }
+
+    .checkpoint-marker.unlocked .checkpoint-kicker {
+      color: var(--neon-green);
+      text-shadow: 0 0 8px rgba(57, 255, 20, 0.75);
+    }
+
+    .checkpoint-marker.unlocked .checkpoint-chevron {
+      color: var(--neon-green);
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 10px rgba(57, 255, 20, 0.95));
+    }
+
+    /* Alternating Slot Unit (Slot + Neon Stem + Glowing Square Node) */
+    .timeline-node-unit {
+      position: absolute;
+      width: 158px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 8;
+    }
+
+    .timeline-node-unit.is-above {
+      bottom: calc(50% + 17px);
+      flex-direction: column;
+    }
+
+    .timeline-node-unit.is-below {
+      top: calc(50% + 17px);
+      flex-direction: column-reverse;
+    }
+
+    .bar-square-node {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      border: 2px solid #ffffff;
+      flex-shrink: 0;
+      z-index: 9;
+      transition: all 0.25s ease;
+    }
+
+    .slot-stem {
+      width: 2px;
+      height: 24px;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    /* Dark Neon Drop-Zone Slot */
+    .timeline-slot {
+      width: 156px;
+      background: rgba(13, 15, 26, 0.88);
+      border: 1px dashed #4a5680;
+      border-radius: var(--radius-lg);
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .timeline-slot.drag-over {
+      border-color: var(--neon-cyan);
+      border-style: solid;
+      background: rgba(0, 229, 255, 0.14);
+      transform: scale(1.04);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.45);
+    }
+
+    .timeline-slot.target-ready {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 229, 255, 0.08);
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.22);
+    }
+
+    .timeline-slot.is-filled {
+      border-style: solid;
+      border-color: rgba(153, 51, 255, 0.55);
+      background: var(--panel-bg);
+    }
+
+    .timeline-slot.is-locked {
+      border-style: solid;
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.1);
+      box-shadow: 0 0 16px rgba(57, 255, 20, 0.3);
+    }
+
+    .timeline-slot.is-wrong {
+      border-style: solid;
+      border-color: var(--neon-red);
+      background: rgba(255, 51, 85, 0.14);
+      box-shadow: 0 0 16px rgba(255, 51, 85, 0.35);
+    }
+
+    .slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      padding: 0 2px;
+    }
+
+    .slot-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 5px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: var(--neon-cyan);
+    }
+
+    .timeline-slot.is-locked .slot-num {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: var(--bg-dark);
+    }
+
+    .timeline-slot.is-wrong .slot-num {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .slot-date {
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: var(--neon-gold);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slot-date.is-hidden {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .slot-body {
+      min-height: 134px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot-empty-placeholder {
+      text-align: center;
+      padding: 10px 6px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .slot-empty-plus {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 6px;
+      border-radius: 6px;
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px dashed rgba(0, 229, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--neon-cyan);
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .slot-empty-label {
+      font-size: 0.66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1.25;
+    }
+
+    /* ==========================================================================
+       VECTOR PICTURE CARDS (SHARED BY TRAY & TIMELINE SLOTS)
+       ========================================================================== */
+    .vector-card {
+      position: relative;
+      width: 100%;
+      background: var(--panel-bg);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: grab;
+      transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .vector-card:hover:not(.locked) {
+      transform: translateY(-3px);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 6px 18px rgba(0, 229, 255, 0.28);
+    }
+
+    .vector-card:active:not(.locked) {
+      cursor: grabbing;
+    }
+
+    .vector-card.dragging {
+      opacity: 0.45;
+      transform: scale(0.95);
+    }
+
+    .vector-card.selected {
+      outline: 2px solid var(--neon-cyan);
+      outline-offset: 2px;
+      border-color: var(--neon-cyan);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+    }
+
+    .vector-card.locked {
+      cursor: pointer;
+      border-color: rgba(57, 255, 20, 0.65);
+    }
+
+    .card-art {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 5 / 3;
+      background: #090b14;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-art svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .card-title {
+      padding: 6px 6px 7px;
+      font-size: 0.71rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-align: center;
+      line-height: 1.24;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel-bg);
+    }
+
+    /* Checkmark & Fact Badges on Placed Cards */
+    .card-check-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      background: var(--neon-green);
+      color: var(--bg-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.85);
+    }
+
+    .card-fact-btn {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(13, 15, 26, 0.88);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .card-fact-btn:hover {
+      background: var(--neon-cyan);
+      color: var(--bg-dark);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
+    }
+
+    /* ==========================================================================
+       DOCKED VECTOR CARD BANK TRAY
+       ========================================================================== */
+    .tray-panel {
+      background: var(--panel-bg);
+      border: 1px solid rgba(153, 51, 255, 0.35);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      padding: 14px 18px 18px;
+    }
+
+    .tray-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tray-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tray-badge {
+      padding: 4px 11px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      background: rgba(153, 51, 255, 0.18);
+      border: 1px solid var(--neon-purple);
+      color: #e4ccff;
+    }
+
+    .tray-count {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--neon-gold);
+    }
+
+    .tray-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+      gap: 11px;
+      min-height: 132px;
+      max-height: 290px;
+      overflow-y: auto;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px dashed #4a5680;
+      background: var(--bg-dark);
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .tray-grid.drag-over {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 229, 255, 0.08);
+      box-shadow: inset 0 0 18px rgba(0, 229, 255, 0.2);
+    }
+
+    .tray-empty-msg {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 26px 12px;
+      text-align: center;
+      color: var(--text-muted);
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       DARK NEON MODALS (FACT & VICTORY)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 950;
+      background: rgba(8, 10, 18, 0.82);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--neon-cyan);
+      border-radius: var(--radius-lg);
+      max-width: 480px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 0 36px rgba(0, 229, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.7);
+      animation: popIn 0.28s ease-out forwards;
+    }
+
+    .fact-art-banner {
+      width: 100%;
+      height: 195px;
+      background: #090b14;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .fact-art-banner svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .modal-body {
+      padding: 22px 24px 24px;
+    }
+
+    .modal-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .modal-date-pill {
+      padding: 4px 11px;
+      border-radius: 5px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      background: rgba(255, 204, 0, 0.14);
+      border: 1px solid var(--neon-gold);
+      color: var(--neon-gold);
+    }
+
+    .modal-era-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--neon-cyan);
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    }
+
+    .modal-text {
+      font-size: 0.94rem;
+      line-height: 1.65;
+      color: var(--text-main);
+      margin: 0 0 20px;
+    }
+
+    /* Victory Modal Specifics */
+    .victory-card {
+      text-align: center;
+      padding: 28px 24px 24px;
+      position: relative;
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 40px rgba(153, 51, 255, 0.35), 0 18px 44px rgba(0, 0, 0, 0.75);
+    }
+
+    .victory-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-gold), var(--neon-green));
+    }
+
+    .victory-stars {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 6px 0 14px;
+    }
+
+    .victory-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    .victory-stat-box {
+      background: var(--bg-dark);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 8px;
+      padding: 11px 8px;
+    }
+
+    .victory-stat-k {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .victory-stat-v {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-top: 4px;
+    }
+
+    .victory-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .victory-actions .action-btn {
+      flex: 1;
+      padding: 11px 14px;
+    }
+
+    /* ==========================================================================
+       NON-BLOCKING TOAST BANNER (EXACTLY MATCHING time.html)
+       ========================================================================== */
+    #toast-banner {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(22, 26, 43, 0.96);
+      border: 1px solid var(--neon-cyan);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      box-shadow: 0 8px 30px rgba(0, 229, 255, 0.3);
+      z-index: 999;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      text-align: center;
+      max-width: 92vw;
+    }
+
+    #toast-banner.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       ANIMATIONS
+       ========================================================================== */
+    @keyframes popIn {
+      0% { transform: scale(0.96); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    @keyframes lockPulse {
+      0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.75); }
+      70% { box-shadow: 0 0 0 14px rgba(57, 255, 20, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); }
+    }
+
+    .animate-shake {
+      animation: shake 0.35s ease-in-out;
+    }
+
+    .animate-lock-pulse {
+      animation: lockPulse 0.85s ease-out;
+    }
+
+    /* ==========================================================================
+       RESPONSIVE DESIGN
+       ========================================================================== */
+    @media (max-width: 768px) {
+      .header-banner {
+        padding: 12px 14px;
+      }
+      .header-banner h1 {
+        font-size: 1.25rem;
+      }
+      .workspace {
+        padding: 12px 10px 20px;
+      }
+      .control-bar {
+        padding: 10px 12px;
+      }
+      .scroll-nav-btn {
+        width: 35px;
+        height: 35px;
+      }
+      .tray-grid {
+        grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+        max-height: 235px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <canvas id="particles"></canvas>
+  <!-- Animated Floating Particle Canvas (matching time.html) -->
+  <canvas id="particles"></canvas>
+  <canvas id="confetti-canvas"></canvas>
 
-    <header class="header-banner">
-        <h1>Chronos // Time Travel</h1>
-        <div class="stats">
-            <span id="xp-counter">🧠 0 Mind Points</span>
+  <!-- ==================== TOP HEADER BANNER ==================== -->
+  <header class="header-banner">
+    <div class="header-left">
+      <a href="time.html" class="action-btn btn-back">← Back to Hub</a>
+      <h1>Chronos // History Timeline</h1>
+    </div>
+
+    <div class="stats">
+      <span id="xp-counter" class="stat-chip">🧠 0 Mind Points</span>
+      <span class="stat-chip cyan muted-label">
+        <span class="lbl">Progress</span>
+        <span id="stat-progress">0/20</span>
+      </span>
+      <span class="stat-chip muted-label">
+        <span class="lbl">Time</span>
+        <span id="stat-timer">00:00</span>
+      </span>
+      <span class="stat-chip cyan muted-label">
+        <span class="lbl">Accuracy</span>
+        <span id="stat-accuracy">--</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- Neon Mastery Progress Line -->
+  <div class="top-progress-track">
+    <div id="top-progress-fill" class="top-progress-fill"></div>
+  </div>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="workspace">
+    <!-- Controls & Mode Bar -->
+    <section class="control-bar" aria-label="Game Controls">
+      <div class="mode-switch" role="group" aria-label="Game Mode">
+        <button id="mode-dates-btn" class="mode-btn active" type="button">Match the Dates</button>
+        <button id="mode-order-btn" class="mode-btn" type="button">Pure Order Challenge</button>
+      </div>
+
+      <div class="actions-group">
+        <button id="hint-btn" class="action-btn btn-hint" type="button" title="Auto-place one milestone into its correct slot">
+          💡 Hint
+        </button>
+        <button id="check-btn" class="action-btn" type="button">
+          ✓ Check Timeline
+        </button>
+        <button id="reset-btn" class="action-btn btn-purple" type="button">
+          ↻ Reset &amp; Shuffle
+        </button>
+        <button id="sound-btn" class="action-btn btn-muted" type="button" aria-label="Toggle Sound" title="Mute / Unmute Sound">
+          <span id="sound-label">🔊 Sound On</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Selection Helper Banner (Tap-to-Place) -->
+    <div id="selection-banner" class="selection-banner" role="status">
+      <span id="selection-banner-text">Card selected — tap any open timeline slot to place it.</span>
+      <button id="cancel-selection-btn" class="action-btn btn-muted" type="button" style="padding:5px 10px; font-size:0.72rem;">Cancel</button>
+    </div>
+
+    <!-- ==================== HORIZONTAL ALTERNATING TIMELINE ==================== -->
+    <section class="timeline-panel" aria-label="20-Event Interactive Infographic Timeline">
+      <div class="timeline-toolbar">
+        <div class="timeline-toolbar-left">
+          <span class="era-pill">20-Event Infographic</span>
+          <span id="instruction-text" class="timeline-hint-text">
+            Drag or tap vector cards into the 20 alternating slots from ~66M BCE to the 2020s.
+          </span>
         </div>
-    </header>
+        <span class="scroll-hint-badge">
+          ◀ Scroll or use arrows to travel across eras ▶
+        </span>
+      </div>
 
-    <main id="app-container"></main>
-    <div id="toast-banner"></div>
+      <!-- Left & Right Smooth Scroll Arrows -->
+      <button id="scroll-left-btn" class="scroll-nav-btn left" type="button" aria-label="Scroll timeline left">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button id="scroll-right-btn" class="scroll-nav-btn right" type="button" aria-label="Scroll timeline right">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
 
-    <script>
-        // --- NON-BLOCKING TOAST NOTIFICATION ---
-        let toastTimer = null;
-        function showToast(message, accentColor) {
-            const toast = document.getElementById('toast-banner');
-            toast.textContent = message;
-            toast.style.borderColor = accentColor || 'var(--neon-cyan)';
-            toast.classList.add('show');
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2400);
-        }
+      <!-- Horizontally Scrollable Timeline Canvas -->
+      <div id="timeline-scroller" class="timeline-scroller">
+        <div id="timeline-canvas" class="timeline-canvas">
+          <!-- Dynamically rendered by JS -->
+        </div>
+      </div>
+    </section>
 
-        // --- ANIMATED STAR / TIME-PARTICLE CANVAS ---
-        function initParticles() {
-            const canvas = document.getElementById('particles');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+    <!-- ==================== DOCKED VECTOR CARD BANK TRAY ==================== -->
+    <section class="tray-panel" aria-label="Shuffled Vector Card Bank">
+      <div class="tray-header">
+        <div class="tray-title-group">
+          <span class="tray-badge">Vector Card Bank</span>
+          <span id="tray-count-label" class="tray-count">20 cards remaining</span>
+        </div>
+        <span class="timeline-hint-text">
+          Drag cards onto timeline slots (or tap a card, then tap a slot). Click "Fact" on placed cards for history insights.
+        </span>
+      </div>
 
-            const particlesArray = [];
-            const colors = ['#00e5ff', '#9933ff', '#ffcc00', '#39ff14', '#ffffff'];
+      <div id="card-tray" class="tray-grid">
+        <!-- Dynamically rendered by JS -->
+      </div>
+    </section>
+  </main>
 
-            for (let i = 0; i < 60; i++) {
-                particlesArray.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2.2 + 0.6,
-                    speedY: Math.random() * 0.55 - 0.275,
-                    speedX: Math.random() * 0.55 - 0.275,
-                    color: colors[Math.floor(Math.random() * colors.length)]
-                });
-            }
+  <!-- ==================== NON-BLOCKING TOAST BANNER ==================== -->
+  <div id="toast-banner" role="status" aria-live="polite"></div>
 
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = 0; i < particlesArray.length; i++) {
-                    const p = particlesArray[i];
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
+  <!-- ==================== HISTORICAL FACT MODAL ==================== -->
+  <div id="fact-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="fact-modal-title">
+    <div class="modal-card">
+      <div id="fact-modal-art" class="fact-art-banner"></div>
+      <div class="modal-body">
+        <div class="modal-meta">
+          <span id="fact-modal-date" class="modal-date-pill"></span>
+          <span id="fact-modal-era" class="modal-era-label"></span>
+        </div>
+        <h2 id="fact-modal-title" class="modal-title"></h2>
+        <p id="fact-modal-text" class="modal-text"></p>
+        <button id="close-fact-btn" class="action-btn" type="button" style="width:100%;">
+          Close Fact
+        </button>
+      </div>
+    </div>
+  </div>
 
-                    p.x += p.speedX;
-                    p.y += p.speedY;
+  <!-- ==================== VICTORY MODAL ==================== -->
+  <div id="victory-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="victory-title">
+    <div class="modal-card victory-card">
+      <div class="victory-strip"></div>
+      <div id="victory-stars" class="victory-stars"></div>
+      <h2 id="victory-title" class="modal-title" style="font-size:1.6rem;">Timeline Restored!</h2>
+      <p class="modal-text" style="margin-bottom: 12px; color: var(--text-muted);">
+        Outstanding work, Time Traveler! You mapped 66 million years of history from the Dinosaur Extinction to AI Datacenters.
+      </p>
+      <div class="victory-stats-grid">
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Completion Time</div>
+          <div id="victory-time" class="victory-stat-v" style="color: var(--neon-cyan);">00:00</div>
+        </div>
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Accuracy</div>
+          <div id="victory-accuracy" class="victory-stat-v" style="color: var(--neon-green);">100%</div>
+        </div>
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Mind Points Earned</div>
+          <div id="victory-mp" class="victory-stat-v" style="color: var(--neon-gold);">+0 MP</div>
+        </div>
+        <div class="victory-stat-box">
+          <div class="victory-stat-k">Hints Used</div>
+          <div id="victory-hints" class="victory-stat-v" style="color: #e4ccff;">0</div>
+        </div>
+      </div>
+      <div class="victory-actions">
+        <button id="victory-inspect-btn" class="action-btn btn-purple" type="button">Inspect Timeline</button>
+        <button id="victory-play-again-btn" class="action-btn btn-correct" type="button">Play Again</button>
+      </div>
+    </div>
+  </div>
 
-                    if (p.x < 0) p.x = canvas.width;
-                    if (p.x > canvas.width) p.x = 0;
-                    if (p.y < 0) p.y = canvas.height;
-                    if (p.y > canvas.height) p.y = 0;
-                }
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
+  <!-- ==================== APPLICATION SCRIPT ==================== -->
+  <script>
+    /**
+     * 1. FLOATING PARTICLE BACKGROUND (Matching time.html)
+     */
+    function initParticles() {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-        window.addEventListener('resize', () => {
-            const canvas = document.getElementById('particles');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+      const particlesArray = [];
+      const colors = ['#00e5ff', '#9933ff', '#ffcc00', '#39ff14', '#ffffff'];
+
+      for (let i = 0; i < 65; i++) {
+        particlesArray.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2.2 + 0.6,
+          speedY: Math.random() * 0.55 - 0.275,
+          speedX: Math.random() * 0.55 - 0.275,
+          color: colors[Math.floor(Math.random() * colors.length)]
         });
+      }
 
-        // --- ACTIVITY 6: TIME CONCEPTS DATABASE ---
-        const timeConceptsDB = [
-            {
-                name: "Butterfly Effect",
-                category: "Cause & Consequence",
-                emoji: "🦋🌊⚡",
-                clue: "One tiny change in the past leads to massive, unpredictable results in the present."
-            },
-            {
-                name: "Time Loop",
-                category: "Temporal Trap",
-                emoji: "🔁⏳♾️",
-                clue: "A traveler is stuck repeating the exact same events over and over again."
-            },
-            {
-                name: "Fish Out of Water",
-                category: "Culture Shock",
-                emoji: "🐟🏜️😳",
-                clue: "A traveler arrives in a different era where they don't understand the clothes, language, or technology."
-            },
-            {
-                name: "Gravity & GPS",
-                category: "Real-World Physics",
-                emoji: "🛰️🌍⏱️",
-                clue: "Satellites orbiting high above Earth adjust clocks by 38.6 microseconds daily to stay accurate."
-            },
-            {
-                name: "Time Dilation",
-                category: "Relativity & Speed",
-                emoji: "🚀🌌⌛",
-                clue: "Moving at insanely fast speeds toward distant stars causes time to pass more slowly for the traveler."
-            },
-            {
-                name: "Historical Paradox",
-                category: "Changing History",
-                emoji: "📜❓💥",
-                clue: "Changing the past so much that the time traveler is never even born."
-            }
-        ];
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particlesArray.length; i++) {
+          const p = particlesArray[i];
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
 
-        const ALL_TIME_CONCEPTS = timeConceptsDB.map(c => c.name);
+          p.x += p.speedX;
+          p.y += p.speedY;
 
-        // --- ACTIVITY 7: TIME IDIOM DECODE DATABASE (12 IDIOMS) ---
-        const timeIdiomsDB = [
-            { idiom: "fish out of water", emoji: "🐟🏜️😵", meaning: "someone in an unfamiliar place" },
-            { idiom: "butterfly effect", emoji: "🦋➡️🌪️", meaning: "a small action causes huge results" },
-            { idiom: "in the nick of time", emoji: "⏰🏃💨", meaning: "just before it is too late" },
-            { idiom: "time flies", emoji: "⏱️🪽🚀", meaning: "time passes very quickly" },
-            { idiom: "turn back the clock", emoji: "⏪🕰️🔙", meaning: "return to an earlier time" },
-            { idiom: "kill time", emoji: "⏳📱🥱", meaning: "do something while waiting" },
-            { idiom: "ahead of its time", emoji: "🤖🔮⚡", meaning: "too modern for the present era" },
-            { idiom: "against the clock", emoji: "🏃‍♂️🆚⏱️", meaning: "working fast to beat a deadline" },
-            { idiom: "once in a blue moon", emoji: "1️⃣🌕🔵", meaning: "happening very rarely" },
-            { idiom: "better late than never", emoji: "🐢🏁🙂", meaning: "arriving late is better than not coming" },
-            { idiom: "out of time", emoji: "⌛🚫🛑", meaning: "no time left to finish" },
-            { idiom: "stand the test of time", emoji: "🏛️🕰️💪", meaning: "remain popular or strong for years" },
-            { idiom: "In the long run", emoji: "⏳➡️🏁", meaning: "over a long period of time" },
-            { idiom: "Time is money", emoji: "⏰💰", meaning: "time is valuable, so don't waste it" },
-            { idiom: "Time heals all wounds", emoji: "⏳❤️‍🩹", meaning: "emotional pain will lessen over time" },
-            { idiom: "Time waits for no one", emoji: "⏱️🚶‍♂️", meaning: "time moves on regardless of what you do" },
-            { idiom: "Time will tell", emoji: "⏳🔮", meaning: "the outcome will be revealed in the future" },
-            { idiom: "The ship has sailed", emoji: "🚢🌊", meaning: "an opportunity has passed and cannot be regained" },
-            { idiom: "Back in the day", emoji: "🕰️📸", meaning: "referring to a time in the past" },
-            { idiom: "Call it a day", emoji: "📅✅", meaning: "to stop working for the day" },
-            { idiom: "Make up for lost time", emoji: "⏳💨", meaning: "to do something quickly to compensate for wasted time" },
-            { idiom: "Dwell on the past", emoji: "🕰️🔙", meaning: "to think too much about past events" },
-            { idiom: "Race against time", emoji: "🏁⏱️", meaning: "to try to finish something before a deadline" },
-            { idiom: "Time on your hands", emoji: "🕰️🙌", meaning: "having free time to do something" },
-            { idiom: "Pressed for time", emoji: "⏳😰", meaning: "having very little time to do something" }
-        ];
+          if (p.x < 0) p.x = canvas.width;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.y < 0) p.y = canvas.height;
+          if (p.y > canvas.height) p.y = 0;
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
 
-        const ALL_IDIOM_MEANINGS = timeIdiomsDB.map(i => i.meaning);
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+    }
 
-        // --- COURSE DATA (BASIC & INTERMEDIATE) ---
-        const courseData = {
-            levels: [
-                {
-                    id: "basic",
-                    title: "Unit 6: Time Travel - Basic",
-                    description: "Explore time machines, the butterfly effect, time loops, and how GPS satellites experience real time travel.",
-                    image: "https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=800&q=80",
-                    reading: [
-                        {
-                            section: "Unit 6: Time Travel",
-                            text: "There is a famous quote: “We are all time travelers, journeying together into the future.” In other words, we are always moving into the future. But when most of us hear “time travel,” we think of changing the past or seeing the far future. Books, movies, TV shows, and even scientists have talked about time travel. It might happen through magic, science, or some strange mystery. In stories like Doraemon, a time machine makes it possible to visit the past or future. No matter how it works, people love imagining it."
-                        },
-                        {
-                            section: "Back to the Past - Changing History",
-                            text: "Many stories are about going back in time to change one important event. It might involve a famous person, a terrible war, or an important invention. Could changing one thing change the whole world? Some people in history caused many deaths. Would it be right to go back and stop them? What if you stopped that person when they were still a baby? In other stories, travelers try to stop a volcano or earthquake from hurting many people. If you knew what was coming, you could save many lives. Other stories imagine helping great people. If a smart inventor had better tools, could we have new technology sooner? What if you could save a good leader who died too young?"
-                        },
-                        {
-                            section: "Back to the Past - Changing Your Life",
-                            text: "As people get older, they often think about something they wish they had done differently. Maybe they never told someone they loved how they felt. Or maybe they want to save a family member or friend who died too young. They imagine one day they could change. Would fixing that moment make their whole life better? Some people would go back to become rich. If you knew which sports teams would win or which companies would make money, you could earn a lot without much work. You might also bring technology from today into the past. People could think you were the smartest person in the world!"
-                        },
-                        {
-                            section: "The Problems with Changing the Past - Butterfly Effect",
-                            text: "But changing the past rarely goes as planned. The “butterfly effect” means that one small change can lead to much bigger changes. If you save someone you love, what if they no longer love you when you return? Or what if someone else in your family dies instead? You might stop a war, but another person could start an even worse war. In some stories, a time traveler changes the past so much that they are never born! No one can know every result of changing the past. You could even bring a sickness from today that makes millions of people in the past sick. One small action could change everything."
-                        },
-                        {
-                            section: "Time Doesn't Want to Change",
-                            text: "Some stories make time seem alive, like it doesn’t want anyone to change it. Strange accidents or bad luck stop travelers from changing history. Time seems to push everything back to how it was before. Another idea is a “time loop.” You think you are changing the past, but everything you do has already happened. You are just living through the same events again, and you cannot change them."
-                        },
-                        {
-                            section: "Fish Out of Water",
-                            text: "In many stories, the time traveler feels like a fish out of water—someone in a place they don’t understand. Whether they go to the past or the future, life is different. People, clothes, and even languages change over time. Travelers often need to hide who they are. But how can you fit in when you don’t know how people live? In the future, would you understand how people talk or use their new technology? Even their phones might look strange to us. In the past, could you live without electricity? Would people think your clothes were strange? If you showed someone an iPhone 200 years ago, would they think you were a witch? Could you even talk to them?"
-                        },
-                        {
-                            section: "A Nice Vacation",
-                            text: "Not everyone wants to change history. Some just want to see it! Would you visit a time when dinosaurs walked the Earth? Or travel to the future to see new technology? Would humans still be there? Maybe we will look very different. We love time travel because we are curious. We want to see what the past was really like and what the future might bring. The best vacation might be a trip to another time, not another place."
-                        },
-                        {
-                            section: "Time Travel is Real",
-                            text: "We don’t have magic or machines that can take us to any time we want. But science has shown that time doesn’t pass at exactly the same speed everywhere. This even matters when you use GPS or Google Maps. Two things can change how fast time passes: speed and gravity. Gravity is the force that pulls us toward Earth. Earth also moves around the Sun at almost 30 kilometers per second. Moving very fast can affect time. This happens to satellites in space. GPS satellites travel high above Earth. Because gravity is weaker there, time passes about 45.8 microseconds faster for them each day. A microsecond is one millionth of a second. But GPS satellites also move very fast, around 14,000 kilometers per hour. Their speed makes time pass about 7.2 microseconds more slowly each day. Together, these two changes make a difference of about 38.6 microseconds a day. That sounds tiny, but if we don’t correct it, GPS could be wrong by more than 11 kilometers in one day! If people one day travel to stars far away, they may move so fast that time passes more slowly for them than for people on Earth. That would be a real kind of time travel into the future. We still don’t know how to visit the past, but we can keep asking “What if?” That’s why time travel stories will always be interesting."
-                        },
-                    ],
-                    vocabulary: [
-                        { word: "quote", chinese: "n. 引言；名言", icon: "💬", examples: [{ en: "There is a famous quote about time travelers.", zh: "有一句關於時間旅行者的著名名言。" }] },
-                        { word: "mystery", chinese: "n. 謎；神秘事物", icon: "🕵️", examples: [{ en: "Time travel might happen through some strange mystery.", zh: "時間旅行可能透過某種奇怪的神秘事物發生。" }] },
-                        { word: "invention", chinese: "n. 發明", icon: "💡", examples: [{ en: "The internet is an important invention in history.", zh: "網際網路是歷史上一項重要的發明。" }] },
-                        { word: "inventor", chinese: "n. 發明家", icon: "🔧", examples: [{ en: "If a smart inventor had better tools, we could have new technology sooner.", zh: "如果聰明的發明家有更好的工具，我們就能更早擁有新科技。" }] },
-                        { word: "leader", chinese: "n. 領導者", icon: "👑", examples: [{ en: "What if you could save a good leader who died too young?", zh: "如果你能拯救一位英年早逝的好領導者呢？" }] },
-                        { word: "butterfly effect", chinese: "n. 蝴蝶效應", icon: "🦋", examples: [{ en: "The butterfly effect means one small change can lead to bigger changes.", zh: "蝴蝶效應是指一個微小的改變可能導致更大的變化。" }] },
-                        { word: "strange", chinese: "adj. 奇怪的；陌生的", icon: "👽", examples: [{ en: "Strange accidents stop travelers from changing history.", zh: "奇怪的意外阻止旅行者改變歷史。" }] },
-                        { word: "time loop", chinese: "n. 時間循環", icon: "🔁", examples: [{ en: "In a time loop, you live through the same events again.", zh: "在時間循環中，你會重複經歷相同的事件。" }] },
-                        { word: "fish out of water", chinese: "phr. 格格不入的人；如魚離水", icon: "🐟", examples: [{ en: "The time traveler feels like a fish out of water in the past.", zh: "這位時間旅行者在過去覺得自己格格不入。" }] },
-                        { word: "curious", chinese: "adj. 好奇的", icon: "🔍", examples: [{ en: "We love time travel because we are curious about the future.", zh: "我們喜歡時間旅行，因為我們對未來感到好奇。" }] },
-                        { word: "gravity", chinese: "n. 重力；地心引力", icon: "🌍", examples: [{ en: "Two things can change how fast time passes: speed and gravity.", zh: "有兩件事能改變時間流逝的速度：速度和重力。" }] },
-                        { word: "force", chinese: "n. 力量；作用力", icon: "⚡", examples: [{ en: "Gravity is the force that pulls us toward Earth.", zh: "重力是把我們拉向地球的作用力。" }] },
-                        { word: "microseconds", chinese: "n. pl. 微秒", icon: "⏱️", examples: [{ en: "GPS clocks need to correct 38.6 microseconds each day.", zh: "GPS 時鐘每天需要校正 38.6 微秒。" }] },
-                        { word: "satellite", chinese: "n. 衛星", icon: "🛰️", examples: [{ en: "GPS satellites orbit high above Earth.", zh: "GPS 衛星在地球上方高空運行。" }] },
-                        { word: "paradox", chinese: "n. 悖論；矛盾", icon: "❓", examples: [{ en: "A historical paradox happens when changing the past makes you never born.", zh: "當改變過去導致你從未出生時，就會發生歷史悖論。" }] },
-                        { word: "ancient", chinese: "adj. 古老的；古代的", icon: "🏺", examples: [{ en: "Ancient civilizations had different ways of measuring time.", zh: "古代文明有不同的計時方式。" }] },
-                        { word: "civilization", chinese: "n. 文明；文化", icon: "🏛️", examples: [{ en: "Ancient civilizations had different ways of measuring time.", zh: "古代文明有不同的計時方式。" }] },
-                        { word: "utopia", chinese: "n. 烏托邦；理想國", icon: "🏞️", examples: [{ en: "Some stories imagine a utopia in the future.", zh: "有些故事想像未來是一個烏托邦。" }] },
-                        { word: "dystopia", chinese: "n. 反烏托邦；悲慘世界", icon: "🏚️", examples: [{ en: "Some stories imagine a dystopia in the future.", zh: "有些故事想像未來是一個反烏托邦。" }] }
-                    ],
-                    questions: [
-                        { type: "fill", q: "1. People might go back in time to help before a _________ or an earthquake.", answer: "volcano" },
-                        {
-                            type: "mc",
-                            q: "2. What is NOT one of the reasons people would travel back to the past?",
-                            options: [
-                                "They want to help someone they love.",
-                                "They want to be young again.",
-                                "They want to be rich.",
-                                "They want to see what happened in the past."
-                            ],
-                            answer: 1
-                        },
-                        {
-                            type: "mc",
-                            q: "3. What is the butterfly effect?",
-                            options: [
-                                "A tiny change can lead to much bigger changes.",
-                                "Butterflies can travel through time.",
-                                "Time always fixes itself back to normal.",
-                                "You can only travel to the future."
-                            ],
-                            answer: 0
-                        },
-                        { type: "fill", q: "4. How many total microseconds does GPS time travel in one day? _________ microseconds a day.", answer: "38.6" }
-                    ],
-                    unscrambleWords: ["mystery", "invention", "inventor", "leader", "strange", "curious", "gravity", "microseconds"],
-                    sentences: [
-                        "We are all time travelers, journeying together into the future.",
-                        "One small change can lead to much bigger changes.",
-                        "Gravity is the force that pulls us toward Earth."
-                    ],
-                    synonyms: [
-                        { word: "common", synonym: "usual" },
-                        { word: "strange", synonym: "unusual" },
-                        { word: "curious", synonym: "interested" },
-                        { word: "huge", synonym: "giant" },
-                        { word: "force", synonym: "power" },
-                        { word: "tiny", synonym: "small" },
-                        { word: "smart", synonym: "clever" },
-                        { word: "leader", synonym: "ruler" },
-                        { word: "mystery", synonym: "puzzle" },
-                        { word: "fast", synonym: "quick" }
-                    ]
-                },
-                {
-                    id: "intermediate",
-                    title: "Unit 6: Time Travel - Intermediate",
-                    description: "Dive deeper into historical paradoxes, the butterfly effect, cultural shock, and the physics of GPS satellites.",
-                    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80",
-                    reading: [
-                        {
-                            section: "Unit 6: Time Travel",
-                            text: "There is a famous quote: “We are all time travelers, journeying together into the future.” However, when most of us hear “time travel,” we think about changing the past or seeing the distant future. Books, movies, TV shows, and scientists have all explored time travel. Whether it happens through magic, amazing science, or an unexplained mystery, the idea of traveling through time fascinates us. In stories like Doraemon, a time machine makes it possible to visit the past or future. But what would really happen if we could do that?"
-                        },
-                        {
-                            section: "Back to the Past - Changing History",
-                            text: "A lot of stories imagine going back in time to change an important moment in history. These moments often involve famous people, terrible wars, or great scientific inventions. The idea is that changing one event could change the path of the whole world. Some terrible people in history have caused many deaths. Would it be okay to go back and stop one of them? What if you stopped them when they were still a baby? Time travel stories often ask whether you should stop an emperor, king, or ruler before they start a war. Other stories focus on disasters, like volcanoes or earthquakes. If you knew one was coming, you could save many lives. Another idea is helping great people do even more good. If one of the smartest people in history had help with their technology, could humanity have advanced sooner? Or what if a great leader who could have brought peace died too early, and you could save them?"
-                        },
-                        {
-                            section: "Back to the Past - Changing Your Life",
-                            text: "As people get older, they often have something they wish they had done differently. Maybe they have one giant regret, like missing their chance at love because they never told someone how they felt. Or maybe they want to save a family member or friend who died too young. They imagine one moment that could change everything. If they could fix it, would the rest of their lives be better? Another thing people often want to change is their wealth. They could use what they know about the future to make money and never worry about working again. If you knew which sports teams would win or which companies would make a lot of money, you could easily become rich. You could also go back in time and look like the smartest person who ever lived. If you brought today’s technology into the past, you might become the most famous genius in the world."
-                        },
-                        {
-                            section: "The Problems with Changing the Past - Butterfly Effect",
-                            text: "No matter why someone travels to the past, things almost never go as planned. The “butterfly effect” describes how even a tiny change could have huge results. Change the past, and the present might be different too. If you save someone you love, maybe they no longer love you when you return. Or maybe someone else in your family has died, even though they were healthy before. Maybe you prevent a war 100 years ago, only for someone else to start an even worse war. In some stories, a traveler changes the past so much that they are never even born. When someone travels to the past, they can’t know every change they might cause. Even a disease they carry from today could make millions of people sick or kill them. With the butterfly effect, one small action could change the world we know."
-                        },
-                        {
-                            section: "Time Doesn't Want to Change",
-                            text: "In many time travel stories, time almost seems alive and doesn’t want to change. Travelers may face terrible luck or strange accidents that stop them from changing history. Time tries to fix their mistakes and return to its original path. Another common idea is a time loop. A traveler thinks they are changing the past, but everything they do has already happened. They are stuck repeating the same history. Whatever they do was always going to happen."
-                        },
-                        {
-                            section: "Fish Out of Water",
-                            text: "One thing many time travel stories have in common is that the traveler is a fish out of water. Whether they go to the past or the future, they are somewhere they don’t belong. Societies, cultures, and even languages change quickly. Travelers may need to hide who they are, but that’s hard when they don’t know how to live in a different time. In the future, would you know the right words to use or understand the new technology? Even a future cell phone, if people still use them, might be impossible to understand. In the past, could you live without electricity? What about your clothes? Would they look strange to the people around you? Would someone 200 years ago think you were a witch if you showed them an iPhone? Could you even talk to them?"
-                        },
-                        {
-                            section: "A Nice Vacation",
-                            text: "Many people imagine visiting a distant time. Some want to see giant dinosaurs walking the Earth. Others want to see what science and technology will bring in the future. Will humans still be around? Will another animal take our place, or will we change so much that we no longer recognize ourselves? Part of our love of time travel comes from curiosity. We want to see what the past was really like and how close our guesses about the future are. For some of us, the ultimate vacation wouldn’t be to another place, but another time."
-                        },
-                        {
-                            section: "Time Travel is Real",
-                            text: "We might not have machines or magic that let us visit any time we want, but science has shown us something surprising: time doesn’t pass at exactly the same speed everywhere. If you use Google Maps or GPS in your car, these tiny differences in time are already part of how they work. Scientists know that speed and gravity affect how we experience time. Earth travels around the Sun at 107,208 kilometers per hour, or almost 30 kilometers per second. How fast you move affects how time passes for you. Gravity is the force that keeps us here on Earth. It pulls things down at about 9.8 meters per second every second. The “S” in GPS stands for “satellite.” These satellites orbit Earth, far above us, where gravity is only about 5.4% as strong as it is on the ground. Because of this difference, time passes about 45.8 microseconds faster each day for the satellites (0.0000458 seconds). GPS satellites also travel around Earth at about 14,000 kilometers per hour. Because of their speed, time passes about 7.2 microseconds more slowly for them each day. Add the effects of gravity (+45.8 μs) and speed (−7.2 μs), and GPS clocks need to account for a difference of 38.6 microseconds each day. That is just 0.0000386 seconds, but without this correction, GPS locations could be off by more than 11 kilometers every day. We expect GPS to find us within a few meters, so those tiny changes in time really matter. If humanity ever travels to distant stars, we’ll need insanely fast speeds, and those speeds could cause real time travel into the future. For now, that is the only kind of time travel we know, but the idea that time can change is fascinating. Our imaginations will always ask “What if?” about the past, present, and future. That’s why time travel stories aren’t going away anytime soon."
-                        }
-                    ],
-                    vocabulary: [
-                        { word: "quote", chinese: "n. 引言；名言", icon: "💬", examples: [{ en: "There is a famous quote about journeying into the future.", zh: "有一句關於邁向未來的著名名言。" }] },
-                        { word: "fascinates", chinese: "v. 使著迷；吸引", icon: "✨", examples: [{ en: "The idea of traveling through time fascinates us.", zh: "穿越時空的想法深深吸引著我們。" }] },
-                        { word: "mystery", chinese: "n. 謎；神秘事物", icon: "🕵️", examples: [{ en: "Time travel could happen through an unexplained mystery.", zh: "時間旅行可能透過一個無法解釋的謎團發生。" }] },
-                        { word: "inventions", chinese: "n. pl. 發明", icon: "💡", examples: [{ en: "Many stories involve great scientific inventions.", zh: "許多故事都涉及偉大的科學發明。" }] },
-                        { word: "disasters", chinese: "n. pl. 災害；災難", icon: "🌋", examples: [{ en: "Other stories focus on disasters, like volcanoes or earthquakes.", zh: "其他故事聚焦於災難，例如火山或地震。" }] },
-                        { word: "humanity", chinese: "n. 人類", icon: "🌐", examples: [{ en: "Could humanity have advanced sooner with better technology?", zh: "如果擁有更好的科技，人類會更早進步嗎？" }] },
-                        { word: "regret", chinese: "n. 遺憾；後悔", icon: "😔", examples: [{ en: "Maybe they have one giant regret from their youth.", zh: "也許他們對年輕時有一件巨大的遺憾。" }] },
-                        { word: "wealth", chinese: "n. 財富", icon: "💰", examples: [{ en: "Another thing people often want to change is their wealth.", zh: "人們經常想改變的另一件事是他們的財富。" }] },
-                        { word: "genius", chinese: "n. 天才", icon: "🧠", examples: [{ en: "You might become the most famous genius in the world.", zh: "你可能會成為世界上最著名的天才。" }] },
-                        { word: "butterfly effect", chinese: "n. 蝴蝶效應", icon: "🦋", examples: [{ en: "With the butterfly effect, one small action could change the world.", zh: "在蝴蝶效應下，一個小舉動就可能改變世界。" }] },
-                        { word: "prevent", chinese: "v. 阻止；預防", icon: "🛡️", examples: [{ en: "Maybe you prevent a war 100 years ago.", zh: "也許你阻止了一百年前的一場戰爭。" }] },
-                        { word: "time loop", chinese: "n. 時間循環", icon: "🔁", examples: [{ en: "In a time loop, travelers are stuck repeating the same history.", zh: "在時間循環中，旅行者被困在重複相同的歷史裡。" }] },
-                        { word: "fish out of water", chinese: "phr. 格格不入的人", icon: "🐟", examples: [{ en: "The time traveler is a fish out of water in a new era.", zh: "時間旅行者在新的時代裡是個格格不入的人。" }] },
-                        { word: "curiosity", chinese: "n. 好奇心", icon: "🔍", examples: [{ en: "Part of our love of time travel comes from curiosity.", zh: "我們對時間旅行的熱愛部分來自好奇心。" }] },
-                        { word: "ultimate", chinese: "adj. 終極的；最棒的", icon: "🏆", examples: [{ en: "The ultimate vacation wouldn't be to another place, but another time.", zh: "終極假期不是去另一個地方，而是去另一個時代。" }] },
-                        { word: "gravity", chinese: "n. 重力；地心引力", icon: "🌍", examples: [{ en: "Gravity is the force that keeps us here on Earth.", zh: "重力是讓我們留在地球上的力量。" }] },
-                        { word: "satellite", chinese: "n. 衛星", icon: "🛰️", examples: [{ en: "GPS satellites orbit Earth far above us.", zh: "GPS 衛星在我們上方遙遠處繞著地球運行。" }] },
-                        { word: "microseconds", chinese: "n. pl. 微秒", icon: "⏱️", examples: [{ en: "GPS clocks account for a difference of 38.6 microseconds each day.", zh: "GPS 時鐘每天需要計算 38.6 微秒的差異。" }] }
-                    ],
-                    questions: [
-                        { type: "fill", q: "1. What are the two disasters (災害) listed in the article? They are _________ and earthquakes.", answer: "volcanoes" },
-                        {
-                            type: "mc",
-                            q: "2. What is NOT one of the reasons people would travel back to the past?",
-                            options: [
-                                "They want to help someone they love.",
-                                "They want to be young again.",
-                                "They want to be rich.",
-                                "They want to see what happened in the past."
-                            ],
-                            answer: 1
-                        },
-                        {
-                            type: "mc",
-                            q: "3. What does the butterfly effect mean?",
-                            options: [
-                                "A tiny change can have huge effects.",
-                                "Time repeats itself in a loop.",
-                                "Gravity makes clocks run slower.",
-                                "Travelers cannot fit into the past."
-                            ],
-                            answer: 0
-                        },
-                        { type: "fill", q: "4. How many total microseconds does GPS time travel in one day? _________ microseconds.", answer: "38.6" }
-                    ],
-                    unscrambleWords: ["fascinates", "inventions", "disasters", "humanity", "butterfly", "curiosity", "satellite", "microseconds"],
-                    sentences: [
-                        "We are all time travelers, journeying together into the future.",
-                        "Scientists know that speed and gravity affect how we experience time.",
-                        "With the butterfly effect, one small action could change the world we know."
-                    ],
-                    synonyms: [
-                        { word: "fascinates", synonym: "amazes" },
-                        { word: "distant", synonym: "far" },
-                        { word: "terrible", synonym: "horrible" },
-                        { word: "wealth", synonym: "riches" },
-                        { word: "prevent", synonym: "stop" },
-                        { word: "strange", synonym: "unusual" },
-                        { word: "ultimate", synonym: "greatest" },
-                        { word: "insanely", synonym: "extremely" },
-                        { word: "tiny", synonym: "minute" },
-                        { word: "ruler", synonym: "leader" }
-                    ]
-                }
-            ]
+    /**
+     * 2. 20 HISTORICAL MILESTONES WITH CUSTOM INLINE SVG ILLUSTRATIONS
+     */
+    const EVENTS = [
+      {
+        id: 'dinosaur-extinction',
+        title: 'Dinosaur Extinction',
+        date: '~66 Million BCE',
+        era: 'Prehistory',
+        nodeColor: '#ff3355',
+        fact: 'A 10-kilometer-wide asteroid struck near the Yucatán Peninsula, forming the Chicxulub crater and triggering global climate changes that ended the reign of non-avian dinosaurs.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g1sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#311B47"/><stop offset="55%" stop-color="#C2410C"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>
+            <linearGradient id="g1tail" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEF08A" stop-opacity="0"/><stop offset="60%" stop-color="#F97316"/><stop offset="100%" stop-color="#FFFBEB"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g1sky)"/>
+          <polygon points="184,4 198,16 122,68 110,55" fill="url(#g1tail)"/>
+          <circle cx="115" cy="61" r="10" fill="#FEF08A"/>
+          <circle cx="113" cy="62" r="6" fill="#7C2D12"/>
+          <polygon points="146,105 170,64 196,105" fill="#451A03"/>
+          <path d="M167,64 Q172,54 178,59 Q174,63 173,65 Z" fill="#F97316"/>
+          <path d="M0,96 Q60,88 120,96 T200,94 L200,120 L0,120 Z" fill="#29150E"/>
+          <path d="M36,105 L42,84 L32,82 L24,86 L24,78 L42,74 L52,61 L66,59 L72,65 L64,69 L66,73 L58,75 L56,88 L64,105 L57,105 L52,92 L46,105 Z" fill="#1C1917"/>
+          <path d="M90,100 Q88,82 94,72" stroke="#1C1917" stroke-width="3" fill="none"/>
+          <path d="M94,72 Q82,66 78,74 M94,72 Q96,60 106,66 M94,72 Q104,70 108,78" stroke="#1C1917" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>`
+      },
+      {
+        id: 'control-of-fire',
+        title: 'Control of Fire',
+        date: '~400,000 BCE',
+        era: 'Prehistory',
+        nodeColor: '#ff7b00',
+        fact: 'Early humans mastered fire for warmth, protection from predators, and cooking food—unlocking more calories and transforming social life around the hearth.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g2glow" cx="50%" cy="62%" r="48%"><stop offset="0%" stop-color="#F97316" stop-opacity="0.78"/><stop offset="100%" stop-color="#1E1B4B" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="200" height="120" fill="#1E1B4B"/>
+          <circle cx="28" cy="22" r="1.3" fill="#FFF"/><circle cx="164" cy="18" r="1.4" fill="#FFF"/><circle cx="140" cy="34" r="1" fill="#FFF"/>
+          <rect width="200" height="120" fill="url(#g2glow)"/>
+          <path d="M0,96 Q100,88 200,96 L200,120 L0,120 Z" fill="#312E81"/>
+          <path d="M100,26 C116,44 128,58 122,82 C118,92 82,92 78,82 C72,58 84,44 100,26 Z" fill="#EA580C"/>
+          <path d="M100,40 C110,54 118,65 113,82 C110,88 90,88 87,82 C82,65 90,54 100,40 Z" fill="#FACC15"/>
+          <path d="M100,56 C106,66 108,74 105,82 C103,86 97,86 95,82 C92,74 94,66 100,56 Z" fill="#FEF9C3"/>
+          <circle cx="80" cy="34" r="2.2" fill="#FDE047"/><circle cx="122" cy="38" r="1.8" fill="#FB923C"/><circle cx="106" cy="18" r="2" fill="#FEF08A"/>
+          <rect x="66" y="82" width="68" height="9" rx="4" fill="#78350F" transform="rotate(8 100 86)"/>
+          <rect x="66" y="82" width="68" height="9" rx="4" fill="#92400E" transform="rotate(-8 100 86)"/>
+          <ellipse cx="64" cy="96" rx="12" ry="7" fill="#64748B"/><ellipse cx="86" cy="100" rx="13" ry="7" fill="#94A3B8"/>
+          <ellipse cx="114" cy="100" rx="13" ry="7" fill="#64748B"/><ellipse cx="136" cy="96" rx="12" ry="7" fill="#475569"/>
+        </svg>`
+      },
+      {
+        id: 'dawn-of-agriculture',
+        title: 'Dawn of Agriculture',
+        date: '~10,000 BCE',
+        era: 'Prehistory',
+        nodeColor: '#ffcc00',
+        fact: 'During the Neolithic Revolution, humans began domesticating wild grains like wheat and barley, leading to permanent villages, food surpluses, and the rise of civilizations.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g3sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0284C7"/><stop offset="100%" stop-color="#FEF3C7"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g3sky)"/>
+          <circle cx="164" cy="28" r="15" fill="#FBBF24"/>
+          <path d="M0,84 Q100,72 200,84 L200,120 L0,120 Z" fill="#92400E"/>
+          <path d="M0,96 Q100,86 200,96" stroke="#78350F" stroke-width="3" fill="none"/>
+          <path d="M0,108 Q100,98 200,108" stroke="#78350F" stroke-width="3" fill="none"/>
+          <g stroke="#CA8A04" stroke-width="2.5" fill="#FACC15">
+            <path d="M52,96 Q50,64 56,34" fill="none"/><ellipse cx="52" cy="40" rx="4" ry="7" transform="rotate(-25 52 40)"/><ellipse cx="60" cy="46" rx="4" ry="7" transform="rotate(25 60 46)"/><ellipse cx="50" cy="54" rx="4" ry="7" transform="rotate(-25 50 54)"/><ellipse cx="59" cy="60" rx="4" ry="7" transform="rotate(25 59 60)"/>
+            <path d="M84,96 Q84,60 88,26" fill="none"/><ellipse cx="83" cy="34" rx="4.5" ry="7.5" transform="rotate(-25 83 34)"/><ellipse cx="92" cy="40" rx="4.5" ry="7.5" transform="rotate(25 92 40)"/><ellipse cx="82" cy="48" rx="4.5" ry="7.5" transform="rotate(-25 82 48)"/><ellipse cx="91" cy="55" rx="4.5" ry="7.5" transform="rotate(25 91 55)"/>
+            <path d="M114,96 Q116,66 112,38" fill="none"/><ellipse cx="108" cy="44" rx="4" ry="7" transform="rotate(-25 108 44)"/><ellipse cx="117" cy="50" rx="4" ry="7" transform="rotate(25 117 50)"/><ellipse cx="109" cy="58" rx="4" ry="7" transform="rotate(-25 109 58)"/>
+          </g>
+          <path d="M138,74 C126,52 142,36 164,46 C148,46 140,56 146,72 Z" fill="#CBD5E1" stroke="#475569" stroke-width="1.5"/>
+          <rect x="139" y="71" width="8" height="22" rx="3" fill="#78350F" transform="rotate(-18 143 82)"/>
+        </svg>`
+      },
+      {
+        id: 'invention-writing',
+        title: 'Invention of Writing',
+        date: '~3200 BCE',
+        era: 'Ancient World',
+        nodeColor: '#f59e0b',
+        fact: 'Ancient Sumerians in Mesopotamia pressed wedge-shaped cuneiform marks into wet clay tablets using reed styluses, allowing laws, trade records, and stories to outlive memory.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g4bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#451A03"/><stop offset="100%" stop-color="#78350F"/></linearGradient>
+            <linearGradient id="g4clay" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FDE68A"/><stop offset="100%" stop-color="#D97706"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g4bg)"/>
+          <!-- Clay Tablet -->
+          <rect x="44" y="14" width="96" height="92" rx="12" fill="url(#g4clay)" stroke="#92400E" stroke-width="3"/>
+          <line x1="54" y1="38" x2="130" y2="38" stroke="#92400E" stroke-width="1.5" opacity="0.6"/>
+          <line x1="54" y1="62" x2="130" y2="62" stroke="#92400E" stroke-width="1.5" opacity="0.6"/>
+          <line x1="54" y1="86" x2="130" y2="86" stroke="#92400E" stroke-width="1.5" opacity="0.6"/>
+          <!-- Cuneiform Wedge Symbols -->
+          <g fill="#5C2607">
+            <polygon points="62,22 72,26 62,30"/>
+            <polygon points="78,22 82,34 86,22"/>
+            <polygon points="94,24 106,24 100,32"/>
+            <polygon points="114,22 122,28 114,32"/>
+            <polygon points="60,46 72,50 60,54"/>
+            <polygon points="80,45 84,56 88,45"/>
+            <polygon points="98,46 110,50 98,54"/>
+            <polygon points="116,45 120,56 124,45"/>
+            <polygon points="64,70 76,74 64,78"/>
+            <polygon points="86,69 96,75 86,79"/>
+            <polygon points="104,70 116,70 110,79"/>
+          </g>
+          <!-- Reed Stylus -->
+          <g transform="translate(154, 62) rotate(24)">
+            <rect x="-4" y="-44" width="8" height="72" rx="2" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5"/>
+            <polygon points="-4,28 4,28 0,42" fill="#78350F"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'great-pyramid',
+        title: 'Great Pyramid of Giza',
+        date: '~2560 BCE',
+        era: 'Ancient World',
+        nodeColor: '#ffcc00',
+        fact: 'Constructed for Pharaoh Khufu using over 2.3 million limestone and granite blocks, the Great Pyramid remained the tallest human-made structure on Earth for over 3,800 years.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g5sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0C4A6E"/><stop offset="65%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#FEF3C7"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g5sky)"/>
+          <circle cx="34" cy="28" r="13" fill="#FBBF24"/>
+          <polygon points="122,94 152,50 182,94" fill="#EAB308"/>
+          <polygon points="152,50 182,94 158,94" fill="#B45309"/>
+          <polygon points="34,98 96,22 158,98" fill="#F59E0B"/>
+          <polygon points="96,22 158,98 112,98" fill="#B45309"/>
+          <line x1="65" y1="60" x2="127" y2="60" stroke="#D97706" stroke-width="1" opacity="0.6"/>
+          <line x1="50" y1="78" x2="142" y2="78" stroke="#D97706" stroke-width="1" opacity="0.6"/>
+          <path d="M0,95 Q55,88 108,96 T200,92 L200,120 L0,120 Z" fill="#FCD34D"/>
+          <path d="M0,106 Q75,100 150,108 T200,104 L200,120 L0,120 Z" fill="#F59E0B"/>
+        </svg>`
+      },
+      {
+        id: 'invention-paper',
+        title: 'Invention of Paper',
+        date: '~105 CE',
+        era: 'Classical Era',
+        nodeColor: '#00e5ff',
+        fact: 'Court official Cai Lun of China’s Han Dynasty standardized papermaking using mulberry bark, hemp, and rags—creating a light, affordable writing surface that spread across the world.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#064E3B"/>
+          <line x1="22" y1="10" x2="22" y2="115" stroke="#10B981" stroke-width="5"/>
+          <line x1="18" y1="44" x2="26" y2="44" stroke="#047857" stroke-width="2"/>
+          <line x1="18" y1="78" x2="26" y2="78" stroke="#047857" stroke-width="2"/>
+          <ellipse cx="32" cy="36" rx="9" ry="3.5" fill="#34D399" transform="rotate(-25 32 36)"/>
+          <rect x="48" y="24" width="96" height="72" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+          <rect x="40" y="18" width="12" height="84" rx="5" fill="#92400E"/>
+          <rect x="140" y="18" width="12" height="84" rx="5" fill="#92400E"/>
+          <g stroke="#334155" stroke-width="2.4" stroke-linecap="round">
+            <line x1="66" y1="40" x2="122" y2="40"/>
+            <line x1="66" y1="53" x2="112" y2="53"/>
+            <line x1="66" y1="66" x2="126" y2="66"/>
+            <line x1="66" y1="79" x2="98" y2="79"/>
+          </g>
+          <rect x="114" y="72" width="14" height="14" rx="2" fill="#DC2626"/>
+          <g transform="translate(166, 58) rotate(22)">
+            <rect x="-3" y="-38" width="6" height="58" rx="2" fill="#D97706"/>
+            <path d="M-4,20 L4,20 L0,36 Z" fill="#0F172A"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'magnetic-compass',
+        title: 'Magnetic Compass',
+        date: '~1040 CE',
+        era: 'Classical Era',
+        nodeColor: '#00e5ff',
+        fact: 'First documented in Song Dynasty China for navigation, the magnetized compass allowed sailors to cross open oceans safely even under cloudy skies, ushering in the Age of Exploration.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g7bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0C4A6E"/><stop offset="100%" stop-color="#0284C7"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g7bg)"/>
+          <line x1="0" y1="60" x2="200" y2="60" stroke="#38BDF8" stroke-width="1" opacity="0.25"/>
+          <line x1="100" y1="0" x2="100" y2="120" stroke="#38BDF8" stroke-width="1" opacity="0.25"/>
+          <g transform="translate(100, 62)">
+            <circle r="44" fill="#D97706" stroke="#FDE68A" stroke-width="3"/>
+            <circle r="37" fill="#FFFBEB" stroke="#92400E" stroke-width="2"/>
+            <text x="0" y="-24" text-anchor="middle" font-size="10" font-weight="800" fill="#B91C1C">N</text>
+            <text x="0" y="32" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">S</text>
+            <text x="27" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">E</text>
+            <text x="-27" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">W</text>
+            <g transform="rotate(28)">
+              <polygon points="0,-24 6,0 -6,0" fill="#DC2626"/>
+              <polygon points="0,24 6,0 -6,0" fill="#CBD5E1" stroke="#64748B" stroke-width="0.8"/>
+              <circle r="4.5" fill="#B45309"/>
+            </g>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'printing-press',
+        title: 'Printing Press',
+        date: '~1440',
+        era: 'Scientific Rev',
+        nodeColor: '#9933ff',
+        fact: 'Johannes Gutenberg combined movable metal type with a wooden screw press in Mainz, Germany, slashing book costs and fueling the Renaissance and Scientific Revolution.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#2E1065"/>
+          <path d="M25,120 L25,38 Q100,-10 175,38 L175,120 Z" fill="#4C1D95" opacity="0.65"/>
+          <rect x="46" y="16" width="12" height="92" rx="2" fill="#B45309"/>
+          <rect x="142" y="16" width="12" height="92" rx="2" fill="#B45309"/>
+          <rect x="40" y="16" width="120" height="14" rx="2" fill="#D97706"/>
+          <rect x="38" y="88" width="124" height="14" rx="2" fill="#D97706"/>
+          <rect x="94" y="28" width="12" height="32" fill="#94A3B8"/>
+          <rect x="74" y="42" width="66" height="6" rx="3" fill="#FDE68A"/>
+          <circle cx="140" cy="45" r="5" fill="#F59E0B"/>
+          <rect x="64" y="58" width="72" height="10" rx="2" fill="#64748B"/>
+          <rect x="68" y="68" width="64" height="28" rx="2" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+          <rect x="74" y="73" width="9" height="9" rx="1" fill="#DC2626"/>
+          <line x1="87" y1="75" x2="124" y2="75" stroke="#334155" stroke-width="2"/>
+          <line x1="87" y1="80" x2="120" y2="80" stroke="#334155" stroke-width="2"/>
+          <line x1="74" y1="87" x2="124" y2="87" stroke="#334155" stroke-width="2"/>
+        </svg>`
+      },
+      {
+        id: 'galileo-telescope',
+        title: "Galileo's Telescope",
+        date: '1609',
+        era: 'Scientific Rev',
+        nodeColor: '#9933ff',
+        fact: 'Galileo Galilei built an improved refracting telescope and turned it toward the night sky, discovering Jupiter’s four largest moons, lunar craters, and Saturn’s rings.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g9sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#312E81"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g9sky)"/>
+          <circle cx="30" cy="24" r="1.5" fill="#FFF"/><circle cx="76" cy="18" r="1.2" fill="#FEF08A"/><circle cx="118" cy="26" r="1.6" fill="#FFF"/>
+          <g transform="translate(154, 32) rotate(-18)">
+            <ellipse rx="24" ry="6" fill="none" stroke="#FDE68A" stroke-width="3"/>
+            <circle r="11" fill="#F59E0B"/>
+            <path d="M-24,0 A24,6 0 0,0 24,0" fill="none" stroke="#FDE68A" stroke-width="3"/>
+          </g>
+          <line x1="82" y1="72" x2="54" y2="114" stroke="#92400E" stroke-width="4" stroke-linecap="round"/>
+          <line x1="82" y1="72" x2="84" y2="114" stroke="#78350F" stroke-width="4" stroke-linecap="round"/>
+          <line x1="82" y1="72" x2="112" y2="114" stroke="#92400E" stroke-width="4" stroke-linecap="round"/>
+          <g transform="translate(82, 66) rotate(-26)">
+            <rect x="-42" y="-6" width="84" height="12" rx="3" fill="#D97706" stroke="#FDE68A" stroke-width="1.5"/>
+            <rect x="34" y="-8" width="16" height="16" rx="2" fill="#F59E0B" stroke="#FEF3C7" stroke-width="1.5"/>
+            <rect x="-52" y="-4" width="12" height="8" rx="1.5" fill="#92400E"/>
+            <ellipse cx="50" cy="0" rx="2.5" ry="7" fill="#38BDF8"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'steam-engine',
+        title: 'Steam Engine',
+        date: '1712',
+        era: 'Industrial Age',
+        nodeColor: '#ffcc00',
+        fact: 'Thomas Newcomen built the first practical coal-fired atmospheric steam engine in 1712 to pump water from mines, sparking the steam-powered Industrial Revolution later supercharged by James Watt.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#1E293B"/>
+          <circle cx="52" cy="26" r="12" fill="#CBD5E1" opacity="0.85"/><circle cx="68" cy="20" r="15" fill="#E2E8F0" opacity="0.85"/><circle cx="88" cy="18" r="11" fill="#F8FAFC" opacity="0.75"/>
+          <rect x="44" y="34" width="16" height="44" fill="#475569"/>
+          <rect x="40" y="32" width="24" height="6" rx="2" fill="#64748B"/>
+          <rect x="34" y="62" width="76" height="36" rx="8" fill="#64748B" stroke="#94A3B8" stroke-width="2.5"/>
+          <rect x="42" y="70" width="16" height="10" rx="2" fill="#F59E0B"/>
+          <g transform="translate(142, 74)">
+            <circle r="27" fill="none" stroke="#F59E0B" stroke-width="7"/>
+            <line x1="-23" y1="0" x2="23" y2="0" stroke="#F59E0B" stroke-width="4"/>
+            <line x1="0" y1="-23" x2="0" y2="23" stroke="#F59E0B" stroke-width="4"/>
+            <circle r="7" fill="#0F172A"/>
+          </g>
+          <line x1="106" y1="74" x2="142" y2="74" stroke="#E2E8F0" stroke-width="5" stroke-linecap="round"/>
+          <rect x="0" y="102" width="200" height="18" fill="#0F172A"/>
+        </svg>`
+      },
+      {
+        id: 'smallpox-vaccine',
+        title: 'Smallpox Vaccine',
+        date: '1796',
+        era: 'Industrial Age',
+        nodeColor: '#39ff14',
+        fact: 'English physician Edward Jenner pioneered vaccination using cowpox to protect against smallpox, launching modern immunology and eventually eradicating smallpox worldwide.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#064E3B"/>
+          <path d="M138,20 L174,30 L174,62 C174,84 156,96 138,104 C120,96 102,84 102,62 L102,30 Z" fill="#10B981" stroke="#6EE7B7" stroke-width="2.5"/>
+          <rect x="133" y="42" width="10" height="32" rx="2" fill="#FFFFFF"/>
+          <rect x="122" y="53" width="32" height="10" rx="2" fill="#FFFFFF"/>
+          <rect x="34" y="44" width="32" height="54" rx="6" fill="#F8FAFC" stroke="#38BDF8" stroke-width="2.5"/>
+          <rect x="37" y="64" width="26" height="31" rx="3" fill="#0EA5E9" opacity="0.75"/>
+          <rect x="41" y="34" width="18" height="10" rx="2" fill="#94A3B8"/>
+          <rect x="38" y="30" width="24" height="5" rx="2" fill="#64748B"/>
+          <g transform="translate(86, 62) rotate(-32)">
+            <rect x="-6" y="-22" width="12" height="36" rx="2" fill="#E0F2FE" stroke="#38BDF8" stroke-width="2"/>
+            <rect x="-4" y="-6" width="8" height="18" fill="#0284C7"/>
+            <line x1="0" y1="-22" x2="0" y2="-38" stroke="#CBD5E1" stroke-width="2.5"/>
+            <line x1="-6" y1="-38" x2="6" y2="-38" stroke="#CBD5E1" stroke-width="3" stroke-linecap="round"/>
+            <line x1="0" y1="14" x2="0" y2="34" stroke="#E2E8F0" stroke-width="2"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'electric-light-bulb',
+        title: 'Electric Light Bulb',
+        date: '1879',
+        era: 'Industrial Age',
+        nodeColor: '#ffcc00',
+        fact: 'Thomas Edison and his Menlo Park team developed a long-lasting carbon-filament incandescent bulb and electrical distribution system, illuminating homes and cities after dark.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g12glow" cx="50%" cy="44%" r="44%"><stop offset="0%" stop-color="#FEF08A"/><stop offset="55%" stop-color="#F59E0B" stop-opacity="0.35"/><stop offset="100%" stop-color="#1E293B" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="200" height="120" fill="#1E293B"/>
+          <rect width="200" height="120" fill="url(#g12glow)"/>
+          <g stroke="#FDE047" stroke-width="3" stroke-linecap="round">
+            <line x1="100" y1="8" x2="100" y2="16"/>
+            <line x1="56" y1="22" x2="64" y2="28"/>
+            <line x1="144" y1="22" x2="136" y2="28"/>
+            <line x1="44" y1="54" x2="54" y2="54"/>
+            <line x1="156" y1="54" x2="146" y2="54"/>
+          </g>
+          <path d="M100,22 C80,22 68,36 68,52 C68,65 78,72 82,84 L118,84 C122,72 132,65 132,52 C132,36 120,22 100,22 Z" fill="#FEF08A" stroke="#F59E0B" stroke-width="2.5"/>
+          <path d="M92,84 L92,58 Q100,44 108,58 L108,84" fill="none" stroke="#EA580C" stroke-width="2.5"/>
+          <path d="M92,58 Q96,52 100,58 Q104,52 108,58" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+          <rect x="84" y="84" width="32" height="18" rx="3" fill="#94A3B8" stroke="#475569" stroke-width="2"/>
+          <line x1="84" y1="90" x2="116" y2="90" stroke="#475569" stroke-width="2"/>
+          <line x1="84" y1="96" x2="116" y2="96" stroke="#475569" stroke-width="2"/>
+          <path d="M91,102 L109,102 L105,109 L95,109 Z" fill="#334155"/>
+        </svg>`
+      },
+      {
+        id: 'wright-brothers-flight',
+        title: "Wright Brothers' Flight",
+        date: '1903',
+        era: 'Modern Era',
+        nodeColor: '#00e5ff',
+        fact: 'On December 17, 1903, Orville and Wilbur Wright completed the first controlled, sustained, powered heavier-than-air flight at Kitty Hawk, North Carolina.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g13sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0284C7"/><stop offset="100%" stop-color="#BAE6FD"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g13sky)"/>
+          <g fill="#FFFFFF" opacity="0.85">
+            <circle cx="38" cy="28" r="10"/><circle cx="50" cy="26" r="13"/><circle cx="62" cy="30" r="9"/>
+            <circle cx="152" cy="22" r="9"/><circle cx="164" cy="20" r="12"/><circle cx="176" cy="24" r="8"/>
+          </g>
+          <path d="M0,98 Q65,86 130,96 T200,92 L200,120 L0,120 Z" fill="#FDE68A"/>
+          <g transform="translate(100, 56) rotate(-7)">
+            <line x1="-38" y1="-12" x2="-38" y2="8" stroke="#78350F" stroke-width="2"/>
+            <line x1="-14" y1="-12" x2="-14" y2="8" stroke="#78350F" stroke-width="2"/>
+            <line x1="14" y1="-12" x2="14" y2="8" stroke="#78350F" stroke-width="2"/>
+            <line x1="38" y1="-12" x2="38" y2="8" stroke="#78350F" stroke-width="2"/>
+            <path d="M-24,16 L26,16 Q34,16 36,10" stroke="#78350F" stroke-width="2.5" fill="none"/>
+            <rect x="-52" y="5" width="104" height="6" rx="3" fill="#FEF3C7" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="-52" y="-15" width="104" height="6" rx="3" fill="#FFFBEB" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="-58" y="-8" width="8" height="14" rx="1" fill="#FDE68A" stroke="#B45309" stroke-width="1"/>
+            <circle cx="4" cy="0" r="3.5" fill="#1E293B"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'discovery-penicillin',
+        title: 'Discovery of Penicillin',
+        date: '1928',
+        era: 'Modern Era',
+        nodeColor: '#39ff14',
+        fact: 'Alexander Fleming noticed a blue-green mold killing surrounding bacteria in a petri dish in London, leading to the world’s first true antibiotic and saving hundreds of millions of lives.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#0F172A"/>
+          <circle cx="76" cy="64" r="42" fill="#134E4A" stroke="#2DD4BF" stroke-width="3"/>
+          <circle cx="76" cy="64" r="35" fill="#0F766E" opacity="0.5"/>
+          <g fill="#FBBF24">
+            <circle cx="52" cy="48" r="3"/><circle cx="60" cy="40" r="2.5"/><circle cx="48" cy="68" r="3"/>
+            <circle cx="58" cy="84" r="3"/><circle cx="78" cy="92" r="2.8"/><circle cx="102" cy="78" r="3"/>
+          </g>
+          <circle cx="88" cy="56" r="18" fill="#5EEAD4" opacity="0.35" stroke="#5EEAD4" stroke-dasharray="3 2"/>
+          <circle cx="88" cy="56" r="9" fill="#14B8A6"/>
+          <circle cx="85" cy="54" r="3" fill="#CCFBF1"/>
+          <g transform="translate(148, 22)" fill="#CBD5E1">
+            <rect x="-4" y="6" width="12" height="34" rx="2" transform="rotate(18 2 22)"/>
+            <path d="M12,34 C26,42 26,64 12,74 L4,68 C14,60 14,46 4,40 Z"/>
+            <rect x="-12" y="54" width="24" height="5" rx="2"/>
+            <rect x="-14" y="74" width="38" height="8" rx="3"/>
+          </g>
+        </svg>`
+      },
+      {
+        id: 'eniac-computer',
+        title: 'ENIAC Electronic Computer',
+        date: '1945',
+        era: 'Modern Era',
+        nodeColor: '#9933ff',
+        fact: 'Built at the University of Pennsylvania with nearly 18,000 vacuum tubes, ENIAC was the first programmable, electronic, general-purpose digital computer—filling an entire room.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#1E293B"/>
+          <rect x="16" y="16" width="50" height="90" rx="4" fill="#334155" stroke="#64748B" stroke-width="2"/>
+          <rect x="75" y="16" width="50" height="90" rx="4" fill="#334155" stroke="#64748B" stroke-width="2"/>
+          <rect x="134" y="16" width="50" height="90" rx="4" fill="#334155" stroke="#64748B" stroke-width="2"/>
+          <g>
+            <circle cx="28" cy="30" r="3.5" fill="#EF4444"/><circle cx="41" cy="30" r="3.5" fill="#FACC15"/><circle cx="54" cy="30" r="3.5" fill="#22C55E"/>
+            <circle cx="28" cy="42" r="3.5" fill="#22C55E"/><circle cx="41" cy="42" r="3.5" fill="#38BDF8"/><circle cx="54" cy="42" r="3.5" fill="#FACC15"/>
+            <circle cx="87" cy="30" r="3.5" fill="#FACC15"/><circle cx="100" cy="30" r="3.5" fill="#EF4444"/><circle cx="113" cy="30" r="3.5" fill="#22C55E"/>
+            <circle cx="146" cy="30" r="3.5" fill="#38BDF8"/><circle cx="159" cy="30" r="3.5" fill="#22C55E"/><circle cx="172" cy="30" r="3.5" fill="#EF4444"/>
+          </g>
+          <rect x="83" y="44" width="34" height="22" rx="3" fill="#0F172A" stroke="#475569"/>
+          <polyline points="87,56 93,50 99,60 105,52 113,56" fill="none" stroke="#34D399" stroke-width="2"/>
+          <path d="M26,70 Q54,96 90,78" fill="none" stroke="#F97316" stroke-width="2.5"/>
+          <path d="M110,76 Q134,98 164,74" fill="none" stroke="#38BDF8" stroke-width="2.5"/>
+          <rect x="24" y="88" width="34" height="10" rx="2" fill="#1E293B"/>
+          <rect x="142" y="88" width="34" height="10" rx="2" fill="#1E293B"/>
+        </svg>`
+      },
+      {
+        id: 'dna-double-helix',
+        title: 'DNA Double Helix',
+        date: '1953',
+        era: 'Modern Era',
+        nodeColor: '#ff3355',
+        fact: 'Building on Rosalind Franklin’s X-ray diffraction images, James Watson and Francis Crick described the double-helix structure of DNA, revealing how genetic information is copied.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g16bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B0764"/><stop offset="100%" stop-color="#1E1B4B"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g16bg)"/>
+          <g stroke-width="4" stroke-linecap="round">
+            <line x1="36" y1="40" x2="36" y2="80" stroke="#F472B6"/>
+            <line x1="56" y1="46" x2="56" y2="74" stroke="#38BDF8"/>
+            <line x1="88" y1="46" x2="88" y2="74" stroke="#34D399"/>
+            <line x1="108" y1="40" x2="108" y2="80" stroke="#FBBF24"/>
+            <line x1="128" y1="46" x2="128" y2="74" stroke="#F472B6"/>
+            <line x1="160" y1="46" x2="160" y2="74" stroke="#38BDF8"/>
+          </g>
+          <path d="M16,38 C44,38 56,82 84,82 C112,82 124,38 152,38 C170,38 180,56 188,68" fill="none" stroke="#38BDF8" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M16,82 C44,82 56,38 84,38 C112,38 124,82 152,82 C170,82 180,64 188,52" fill="none" stroke="#EC4899" stroke-width="5.5" stroke-linecap="round"/>
+        </svg>`
+      },
+      {
+        id: 'apollo-moon-landing',
+        title: 'Apollo 11 Moon Landing',
+        date: '1969',
+        era: 'Modern Era',
+        nodeColor: '#00e5ff',
+        fact: 'On July 20, 1969, Neil Armstrong and Buzz Aldrin landed the Lunar Module Eagle on the Sea of Tranquility as over 600 million people watched humanity’s first steps on the Moon.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="120" fill="#0F172A"/>
+          <circle cx="22" cy="18" r="1.2" fill="#FFF"/><circle cx="58" cy="12" r="1" fill="#FFF"/><circle cx="94" cy="24" r="1.4" fill="#FFF"/><circle cx="176" cy="18" r="1.2" fill="#FFF"/>
+          <circle cx="164" cy="28" r="14" fill="#2563EB"/>
+          <path d="M156,22 Q164,18 170,24 Q166,30 160,28 Z" fill="#22C55E"/>
+          <path d="M0,90 Q100,76 200,92 L200,120 L0,120 Z" fill="#CBD5E1"/>
+          <ellipse cx="42" cy="104" rx="14" ry="4" fill="#94A3B8"/><ellipse cx="152" cy="102" rx="18" ry="5" fill="#94A3B8"/>
+          <line x1="76" y1="74" x2="62" y2="94" stroke="#E2E8F0" stroke-width="2.5"/>
+          <line x1="112" y1="74" x2="126" y2="94" stroke="#E2E8F0" stroke-width="2.5"/>
+          <line x1="94" y1="78" x2="94" y2="94" stroke="#E2E8F0" stroke-width="2.5"/>
+          <rect x="74" y="60" width="40" height="18" rx="3" fill="#F59E0B" stroke="#B45309" stroke-width="1.5"/>
+          <polygon points="80,60 86,42 102,42 108,60" fill="#E2E8F0" stroke="#64748B" stroke-width="1.5"/>
+          <rect x="89" y="48" width="10" height="6" rx="1" fill="#1E293B"/>
+          <line x1="142" y1="62" x2="142" y2="92" stroke="#F8FAFC" stroke-width="2"/>
+          <rect x="142" y="63" width="22" height="13" fill="#EF4444"/>
+          <rect x="142" y="63" width="9" height="7" fill="#1D4ED8"/>
+        </svg>`
+      },
+      {
+        id: 'world-wide-web',
+        title: 'World Wide Web',
+        date: '1989',
+        era: 'Modern Era',
+        nodeColor: '#00e5ff',
+        fact: 'Tim Berners-Lee invented the World Wide Web at CERN in 1989, creating HTML, HTTP, and URLs so people everywhere could link and share information across the Internet.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g18bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#1E3A8A"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g18bg)"/>
+          <g stroke="#38BDF8" stroke-width="1.5" opacity="0.55">
+            <line x1="34" y1="30" x2="88" y2="60"/><line x1="32" y1="92" x2="88" y2="60"/>
+          </g>
+          <g transform="translate(72, 60)">
+            <circle r="32" fill="#0EA5E9" fill-opacity="0.2" stroke="#38BDF8" stroke-width="2"/>
+            <ellipse rx="15" ry="32" fill="none" stroke="#38BDF8" stroke-width="1.5"/>
+            <line x1="-32" y1="0" x2="32" y2="0" stroke="#38BDF8" stroke-width="1.5"/>
+          </g>
+          <circle cx="34" cy="30" r="5.5" fill="#34D399"/><circle cx="32" cy="92" r="5.5" fill="#FBBF24"/>
+          <rect x="96" y="28" width="84" height="64" rx="7" fill="#FFFFFF" stroke="#38BDF8" stroke-width="2"/>
+          <rect x="96" y="28" width="84" height="15" rx="6" fill="#E2E8F0"/>
+          <circle cx="105" cy="35" r="2.5" fill="#EF4444"/><circle cx="113" cy="35" r="2.5" fill="#F59E0B"/><circle cx="121" cy="35" r="2.5" fill="#22C55E"/>
+          <text x="138" y="64" text-anchor="middle" font-size="14" font-weight="800" fill="#1D4ED8">WWW</text>
+          <rect x="110" y="72" width="56" height="6" rx="3" fill="#CBD5E1"/>
+        </svg>`
+      },
+      {
+        id: 'modern-smartphone',
+        title: 'First Smartphone Era',
+        date: '2007',
+        era: 'AI Era',
+        nodeColor: '#9933ff',
+        fact: 'The 2007 debut of the first iPhone popularized capacitive multi-touch glass screens, mobile web browsing, and app stores—putting a pocket computer in billions of hands.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g19bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#EC4899"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g19bg)"/>
+          <path d="M138,34 Q150,42 146,56" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+          <path d="M146,26 Q164,38 158,60" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
+          <rect x="70" y="12" width="60" height="96" rx="11" fill="#0F172A" stroke="#E2E8F0" stroke-width="2.5"/>
+          <rect x="75" y="21" width="50" height="74" rx="4" fill="#1E293B"/>
+          <rect x="81" y="28" width="10" height="10" rx="2.5" fill="#38BDF8"/>
+          <rect x="95" y="28" width="10" height="10" rx="2.5" fill="#34D399"/>
+          <rect x="109" y="28" width="10" height="10" rx="2.5" fill="#FBBF24"/>
+          <rect x="81" y="43" width="10" height="10" rx="2.5" fill="#F472B6"/>
+          <rect x="95" y="43" width="10" height="10" rx="2.5" fill="#A78BFA"/>
+          <rect x="109" y="43" width="10" height="10" rx="2.5" fill="#FB7185"/>
+          <rect x="81" y="58" width="38" height="16" rx="3" fill="#334155"/>
+          <circle cx="100" cy="101" r="3.5" fill="#475569"/>
+        </svg>`
+      },
+      {
+        id: 'ai-datacenters',
+        title: 'AI Datacenters',
+        date: '2020s',
+        era: 'AI Era',
+        nodeColor: '#00e5ff',
+        fact: 'Hyperscale AI datacenters unite thousands of specialized GPU accelerators and advanced liquid cooling to train and run modern artificial intelligence models across the globe.',
+        svg: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g20bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#020617"/><stop offset="100%" stop-color="#0F172A"/></linearGradient>
+          </defs>
+          <rect width="200" height="120" fill="url(#g20bg)"/>
+          <rect x="18" y="38" width="38" height="74" rx="4" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+          <rect x="81" y="44" width="38" height="68" rx="4" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+          <rect x="144" y="38" width="38" height="74" rx="4" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+          <rect x="24" y="48" width="26" height="4" rx="2" fill="#22D3EE"/>
+          <rect x="24" y="60" width="26" height="4" rx="2" fill="#34D399"/>
+          <rect x="24" y="72" width="26" height="4" rx="2" fill="#818CF8"/>
+          <rect x="24" y="84" width="26" height="4" rx="2" fill="#22D3EE"/>
+          <rect x="87" y="54" width="26" height="4" rx="2" fill="#38BDF8"/>
+          <rect x="87" y="66" width="26" height="4" rx="2" fill="#A78BFA"/>
+          <rect x="87" y="78" width="26" height="4" rx="2" fill="#34D399"/>
+          <rect x="87" y="90" width="26" height="4" rx="2" fill="#38BDF8"/>
+          <rect x="150" y="48" width="26" height="4" rx="2" fill="#22D3EE"/>
+          <rect x="150" y="60" width="26" height="4" rx="2" fill="#818CF8"/>
+          <rect x="150" y="72" width="26" height="4" rx="2" fill="#34D399"/>
+          <rect x="150" y="84" width="26" height="4" rx="2" fill="#A78BFA"/>
+          <g stroke="#38BDF8" stroke-width="1.6" opacity="0.85">
+            <line x1="66" y1="22" x2="100" y2="12"/><line x1="100" y1="12" x2="134" y2="22"/>
+            <line x1="66" y1="22" x2="100" y2="33"/><line x1="134" y1="22" x2="100" y2="33"/>
+            <line x1="100" y1="12" x2="100" y2="33"/>
+          </g>
+          <circle cx="66" cy="22" r="4.5" fill="#34D399"/>
+          <circle cx="100" cy="12" r="5.5" fill="#38BDF8"/>
+          <circle cx="134" cy="22" r="4.5" fill="#A78BFA"/>
+          <circle cx="100" cy="33" r="4.5" fill="#F472B6"/>
+        </svg>`
+      }
+    ];
+
+    /**
+     * 3. CHECKPOINTS & ERA TRACK CONFIGURATION
+     */
+    const CHECKPOINTS = [
+      { id: 'cp1', label: 'Checkpoint 1', title: 'Dawn of Writing', afterSlotIndex: 3 },
+      { id: 'cp2', label: 'Checkpoint 2', title: 'Industrial Age', afterSlotIndex: 10 },
+      { id: 'cp3', label: 'Checkpoint 3', title: 'Information Age', afterSlotIndex: 15 }
+    ];
+
+    const BAR_ERA_LABELS = [
+      'Prehistory',
+      'Ancient World',
+      'Classical Era',
+      'Scientific Rev',
+      'Industrial Age',
+      'Modern Era',
+      'AI Era'
+    ];
+
+    // Layout Geometry
+    const START_X = 188;
+    const STEP_X = 166;
+    const CANVAS_WIDTH = START_X + (EVENTS.length - 1) * STEP_X + 210;
+
+    /**
+     * 4. APPLICATION STATE & MIND POINTS (Synced with timeLabXP)
+     */
+    const state = {
+      mode: 'dates', // 'dates' | 'order'
+      slots: Array(EVENTS.length).fill(null),
+      lockedSlots: new Set(),
+      wrongSlots: new Set(),
+      unlockedCheckpoints: new Set(),
+      tray: [],
+      selected: null,
+      totalChecked: 0,
+      correctChecked: 0,
+      hintsUsed: 0,
+      sessionXP: 0,
+      timerSeconds: 0,
+      timerInterval: null,
+      timerStarted: false,
+      soundEnabled: true,
+      isVictory: false
+    };
+
+    let userXP = 0;
+    try {
+      userXP = parseInt(localStorage.getItem('timeLabXP'), 10) || 0;
+    } catch (e) {
+      userXP = 0;
+    }
+
+    function updateXP(amount) {
+      if (amount > 0) {
+        userXP += amount;
+        state.sessionXP += amount;
+        try {
+          localStorage.setItem('timeLabXP', userXP);
+        } catch (e) {
+          // Ignore storage restrictions
+        }
+      }
+      document.getElementById('xp-counter').textContent = `🧠 ${userXP} Mind Points`;
+    }
+
+    /**
+     * 5. WEB AUDIO API SYNTHESIZED SOUND EFFECTS
+     */
+    let audioCtx = null;
+    function playTone(type) {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+
+        const playNote = (freq, startOffset, duration, wave = 'triangle', vol = 0.12) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = wave;
+          osc.frequency.setValueAtTime(freq, now + startOffset);
+          gain.gain.setValueAtTime(vol, now + startOffset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + startOffset + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + startOffset);
+          osc.stop(now + startOffset + duration + 0.02);
         };
 
-        // --- APPLICATION STATE ---
-        const appContainer = document.getElementById('app-container');
-        let currentLevel = null;
-        let userXP = parseInt(localStorage.getItem('timeLabXP'), 10) || 0;
+        if (type === 'place') {
+          playNote(440, 0, 0.07, 'sine', 0.1);
+          playNote(587, 0.04, 0.07, 'sine', 0.08);
+        } else if (type === 'correct') {
+          playNote(523.25, 0, 0.14, 'triangle', 0.13);
+          playNote(659.25, 0.08, 0.18, 'triangle', 0.13);
+        } else if (type === 'checkpoint') {
+          playNote(523.25, 0, 0.12, 'triangle', 0.14);
+          playNote(659.25, 0.09, 0.12, 'triangle', 0.14);
+          playNote(783.99, 0.18, 0.28, 'triangle', 0.16);
+        } else if (type === 'wrong') {
+          playNote(210, 0, 0.16, 'sawtooth', 0.07);
+          playNote(165, 0.08, 0.16, 'sawtooth', 0.07);
+        } else if (type === 'victory') {
+          [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, idx) => {
+            playNote(f, idx * 0.1, 0.34, 'triangle', 0.14);
+          });
+        }
+      } catch (e) {
+        // Ignore audio restrictions
+      }
+    }
 
-        let currentReadingIndex = 0;
-        let currentQuestionIndex = 0;
-        let currentFlashcardIndex = 0;
-        let currentVocabUnscrambleIndex = 0;
-        let currentSentenceIndex = 0;
-        let conceptChallengeIndex = 0;
-        let idiomChallengeIndex = 0;
-        let synonymChallengeIndex = 0;
+    /**
+     * 6. NON-BLOCKING TOAST BANNER (Matching time.html)
+     */
+    let toastTimer = null;
+    function showToast(message, accentColor) {
+      const toast = document.getElementById('toast-banner');
+      toast.textContent = message;
+      toast.style.borderColor = accentColor || 'var(--neon-cyan)';
+      toast.style.boxShadow = `0 8px 30px ${accentColor ? accentColor : 'rgba(0, 229, 255, 0.3)'}`;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
 
-        let wordsToFind = [];
-        let activeConcepts = [];
-        let activeIdioms = [];
-        let activeSynonyms = [];
+    /**
+     * 7. HELPERS & TIMER
+     */
+    function getEventById(id) {
+      return EVENTS.find(e => e.id === id);
+    }
 
-        function init() {
-            initParticles();
-            updateXP(0);
-            renderHome();
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function formatTime(secs) {
+      const m = String(Math.floor(secs / 60)).padStart(2, '0');
+      const s = String(secs % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startTimerIfNeeded() {
+      if (state.timerStarted || state.isVictory) return;
+      state.timerStarted = true;
+      state.timerInterval = setInterval(() => {
+        state.timerSeconds++;
+        document.getElementById('stat-timer').textContent = formatTime(state.timerSeconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+    }
+
+    function scrollToSlot(slotIndex) {
+      const scroller = document.getElementById('timeline-scroller');
+      const targetX = START_X + slotIndex * STEP_X;
+      const desiredLeft = Math.max(0, targetX - scroller.clientWidth / 2 + 44);
+      scroller.scrollTo({ left: desiredLeft, behavior: 'smooth' });
+    }
+
+    function isCheckpointUnlocked(cp) {
+      for (let i = 0; i <= cp.afterSlotIndex; i++) {
+        if (!state.lockedSlots.has(i)) return false;
+      }
+      return true;
+    }
+
+    function evaluateCheckpoints() {
+      const newlyUnlocked = [];
+      CHECKPOINTS.forEach((cp) => {
+        if (isCheckpointUnlocked(cp) && !state.unlockedCheckpoints.has(cp.id)) {
+          state.unlockedCheckpoints.add(cp.id);
+          newlyUnlocked.push(cp);
+        }
+      });
+      return newlyUnlocked;
+    }
+
+    /**
+     * 8. INIT / RESET GAME
+     */
+    function initGame() {
+      stopTimer();
+      state.slots = Array(EVENTS.length).fill(null);
+      state.lockedSlots = new Set();
+      state.wrongSlots = new Set();
+      state.unlockedCheckpoints = new Set();
+      state.tray = shuffle(EVENTS.map(e => e.id));
+      state.selected = null;
+      state.totalChecked = 0;
+      state.correctChecked = 0;
+      state.hintsUsed = 0;
+      state.sessionXP = 0;
+      state.timerSeconds = 0;
+      state.timerStarted = false;
+      state.isVictory = false;
+
+      document.getElementById('stat-timer').textContent = '00:00';
+      document.getElementById('victory-modal').classList.remove('open');
+      document.getElementById('timeline-scroller').scrollTo({ left: 0, behavior: 'smooth' });
+      updateXP(0);
+      updateInstructionText();
+      renderAll();
+    }
+
+    function updateInstructionText() {
+      const el = document.getElementById('instruction-text');
+      if (state.mode === 'dates') {
+        el.textContent = 'Match each vector card to its historical date on the alternating timeline (~66M BCE → 2020s).';
+      } else {
+        el.textContent = 'Pure Order Challenge: Dates are hidden! Place all 20 events chronologically from #1 to #20.';
+      }
+    }
+
+    /**
+     * 9. RENDERING
+     */
+    function renderAll() {
+      renderStats();
+      renderSelectionBanner();
+      renderTimeline();
+      renderTray();
+    }
+
+    function renderStats() {
+      const correctCount = state.lockedSlots.size;
+      document.getElementById('stat-progress').textContent = `${correctCount}/${EVENTS.length}`;
+
+      const pct = Math.round((correctCount / EVENTS.length) * 100);
+      document.getElementById('top-progress-fill').style.width = `${pct}%`;
+
+      const accEl = document.getElementById('stat-accuracy');
+      if (state.totalChecked === 0) {
+        accEl.textContent = '--';
+      } else {
+        accEl.textContent = `${Math.round((state.correctChecked / state.totalChecked) * 100)}%`;
+      }
+
+      const rem = state.tray.length;
+      document.getElementById('tray-count-label').textContent =
+        rem === 0 ? 'All 20 cards deployed on timeline!' : `${rem} card${rem === 1 ? '' : 's'} remaining`;
+    }
+
+    function renderSelectionBanner() {
+      const banner = document.getElementById('selection-banner');
+      if (!state.selected) {
+        banner.classList.remove('visible');
+        return;
+      }
+      const ev = getEventById(state.selected.id);
+      document.getElementById('selection-banner-text').textContent =
+        `Selected "${ev.title}" — tap any open timeline slot to place or swap it.`;
+      banner.classList.add('visible');
+    }
+
+    /**
+     * Build a Vector Picture Card
+     */
+    function createVectorCard(eventId, location, slotIndex = null) {
+      const ev = getEventById(eventId);
+      const isLocked = location === 'slot' && state.lockedSlots.has(slotIndex);
+      const isSelected = state.selected && state.selected.id === eventId;
+
+      const card = document.createElement('div');
+      card.className = 'vector-card' + (isLocked ? ' locked' : '') + (isSelected ? ' selected' : '');
+      card.draggable = !isLocked;
+
+      const art = document.createElement('div');
+      art.className = 'card-art';
+      art.innerHTML = ev.svg;
+
+      if (isLocked) {
+        const check = document.createElement('div');
+        check.className = 'card-check-badge';
+        check.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        art.appendChild(check);
+      }
+
+      // Fact button on placed cards
+      if (location === 'slot') {
+        const factBtn = document.createElement('button');
+        factBtn.type = 'button';
+        factBtn.className = 'card-fact-btn';
+        factBtn.textContent = 'Fact';
+        factBtn.title = 'Read historical fact';
+        factBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openFactModal(eventId, isLocked || state.mode === 'dates' || state.isVictory);
+        });
+        art.appendChild(factBtn);
+      }
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = ev.title;
+
+      card.appendChild(art);
+      card.appendChild(title);
+
+      // HTML5 Drag Events
+      if (!isLocked) {
+        card.addEventListener('dragstart', (e) => {
+          startTimerIfNeeded();
+          state.selected = null;
+          renderSelectionBanner();
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('application/json', JSON.stringify({
+            id: eventId,
+            source: location,
+            slotIndex
+          }));
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+        });
+      }
+
+      // Tap / Click Interaction
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startTimerIfNeeded();
+
+        if (isLocked) {
+          openFactModal(eventId, true);
+          return;
         }
 
-        function updateXP(amount) {
-            userXP += amount;
-            localStorage.setItem('timeLabXP', userXP);
-            document.getElementById('xp-counter').textContent = `🧠 ${userXP} Mind Points`;
+        if (!state.selected) {
+          state.selected = { source: location, id: eventId, slotIndex };
+          renderAll();
+          return;
         }
 
-        function escapeSingleQuotes(str) {
-            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        if (state.selected.id === eventId) {
+          state.selected = null;
+          renderAll();
+          return;
         }
 
-        // --- HOME & LEVEL MENU ---
-        function renderHome() {
-            appContainer.innerHTML = `
-                <div class="card-grid animate-pop">
-                    ${courseData.levels.map(level => `
-                        <div class="level-card" onclick="startLevel('${level.id}')">
-                            <img src="${level.image}" alt="${level.title}" class="level-image" onerror="this.src='https://placehold.co/800x400/161a2b/00e5ff?text=Time+Travel'">
-                            <h2>${level.title}</h2>
-                            <p style="color: var(--text-muted); line-height: 1.5;">${level.description}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+        if (location === 'slot') {
+          moveCardToSlot(state.selected, slotIndex);
+        } else {
+          state.selected = { source: 'tray', id: eventId, slotIndex: null };
+          renderAll();
         }
+      });
 
-        function startLevel(levelId) {
-            currentLevel = courseData.levels.find(l => l.id === levelId);
-            renderMenu();
+      return card;
+    }
+
+    /**
+     * Render Horizontal Alternating Infographic Timeline
+     */
+    function renderTimeline() {
+      const canvas = document.getElementById('timeline-canvas');
+      canvas.style.width = `${CANVAS_WIDTH}px`;
+      canvas.innerHTML = '';
+
+      // 1. Central Sci-Fi Glass Arrow Bar with Era Labels
+      const barWrap = document.createElement('div');
+      barWrap.className = 'center-bar-wrapper';
+      barWrap.innerHTML = `
+        <div class="center-bar-body">
+          ${BAR_ERA_LABELS.map(era => `<span class="bar-era-label">${era}</span>`).join('')}
+        </div>
+        <div class="center-bar-arrow"></div>
+      `;
+      canvas.appendChild(barWrap);
+
+      // 2. Glowing Red Diamond Start & End Markers
+      const startMarker = document.createElement('div');
+      startMarker.className = 'endpoint-marker start';
+      startMarker.innerHTML = `
+        <div class="endpoint-label">
+          <div class="endpoint-title">Timeline Start</div>
+          <div class="endpoint-date">~66M BCE</div>
+        </div>
+        <div class="red-diamond"></div>
+      `;
+      canvas.appendChild(startMarker);
+
+      const endMarker = document.createElement('div');
+      endMarker.className = 'endpoint-marker end';
+      endMarker.innerHTML = `
+        <div class="red-diamond"></div>
+        <div class="endpoint-label">
+          <div class="endpoint-title">Timeline End</div>
+          <div class="endpoint-date">2020s</div>
+        </div>
+      `;
+      canvas.appendChild(endMarker);
+
+      // 3. Three Illuminating Checkpoint Chevron Markers
+      CHECKPOINTS.forEach((cp) => {
+        const unlocked = isCheckpointUnlocked(cp);
+        const cpX = START_X + (cp.afterSlotIndex + 0.5) * STEP_X;
+        const cpEl = document.createElement('div');
+        cpEl.className = 'checkpoint-marker' + (unlocked ? ' unlocked' : '');
+        cpEl.style.left = `${cpX}px`;
+        cpEl.innerHTML = `
+          <div class="checkpoint-label-box">
+            <div class="checkpoint-kicker">${cp.label}${unlocked ? ' ✓' : ''}</div>
+            <div class="checkpoint-name">${cp.title}</div>
+          </div>
+          <svg class="checkpoint-chevron" viewBox="0 0 28 22" fill="currentColor">
+            <polygon points="14,2 27,14 27,21 14,10 1,21 1,14"/>
+          </svg>
+        `;
+        canvas.appendChild(cpEl);
+      });
+
+      // 4. 20 Alternating Drop-Zone Slots (Odd below, Even above)
+      EVENTS.forEach((ev, idx) => {
+        const slotNum = idx + 1;
+        const isAbove = slotNum % 2 === 0;
+        const xPos = START_X + idx * STEP_X;
+        const placedId = state.slots[idx];
+        const isLocked = state.lockedSlots.has(idx);
+        const isWrong = state.wrongSlots.has(idx);
+        const showDate = state.mode === 'dates' || isLocked || state.isVictory;
+
+        const unit = document.createElement('div');
+        unit.className = `timeline-node-unit ${isAbove ? 'is-above' : 'is-below'}`;
+        unit.style.left = `${xPos}px`;
+
+        const slotEl = document.createElement('div');
+        slotEl.className = [
+          'timeline-slot',
+          placedId ? 'is-filled' : '',
+          isLocked ? 'is-locked' : '',
+          isWrong ? 'is-wrong' : '',
+          state.selected && !isLocked ? 'target-ready' : ''
+        ].filter(Boolean).join(' ');
+        slotEl.dataset.slotIndex = idx;
+
+        const header = document.createElement('div');
+        header.className = 'slot-header';
+        header.innerHTML = `
+          <span class="slot-num">#${slotNum}</span>
+          <span class="slot-date ${showDate ? '' : 'is-hidden'}">${showDate ? ev.date : '???'}</span>
+        `;
+        slotEl.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'slot-body';
+        if (placedId) {
+          body.appendChild(createVectorCard(placedId, 'slot', idx));
+        } else {
+          body.innerHTML = `
+            <div class="slot-empty-placeholder">
+              <div class="slot-empty-plus">+</div>
+              <div class="slot-empty-label">${state.selected ? 'Tap to place' : 'Drop vector'}</div>
+            </div>
+          `;
         }
+        slotEl.appendChild(body);
 
-        function renderMenu() {
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderHome()">← Switch Level</button>
-                <h1 style="text-align:center; font-family:'Playfair Display', serif; color: var(--neon-cyan); letter-spacing: 1px;">${currentLevel.title.toUpperCase()}</h1>
-                <div class="card-grid animate-pop">
-                    <div class="level-card" onclick="startReading()">
-                        <div style="font-size: 3rem;">📖</div>
-                        <h3>Reading</h3>
-                    </div>
-                    <div class="level-card" onclick="startQuiz()">
-                        <div style="font-size: 3rem;">❓</div>
-                        <h3>Knowledge Check</h3>
-                    </div>
-                    <div class="level-card" onclick="startFlashcards()">
-                        <div style="font-size: 3rem;">🎴</div>
-                        <h3>Vocab Flashcards</h3>
-                    </div>
-                    <div class="level-card" onclick="startVocabUnscramble()">
-                        <div style="font-size: 3rem;">🔀</div>
-                        <h3>Unscramble</h3>
-                    </div>
-                    <div class="level-card" onclick="startSentenceUnscramble()">
-                        <div style="font-size: 3rem;">🧩</div>
-                        <h3>Sentence Builder</h3>
-                    </div>
-                    <div class="level-card" onclick="startSynonymMatch()">
-                        <div style="font-size: 3rem;">🔗</div>
-                        <h3>Synonym Match</h3>
-                    </div>
-                    <div class="level-card" onclick="startConceptChallenge()">
-                        <div style="font-size: 3rem;">⏳</div>
-                        <h3>Time Concepts</h3>
-                    </div>
-                    <div class="level-card" onclick="startIdiomChallenge()">
-                        <div style="font-size: 3rem;">🕰️</div>
-                        <h3>Time Idiom Decode</h3>
-                    </div>
-                    <a href="timeline.html" class="level-card" style="text-decoration: none; color: inherit; display: block;">
-                        <div style="font-size: 3rem;">🕰️🧩🎨</div>
-                        <h3>Timeline</h3>
-                    </a>
-                </div>
-            `;
+        // Drag & Drop Listeners on Slot
+        slotEl.addEventListener('dragover', (e) => {
+          if (state.lockedSlots.has(idx)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          slotEl.classList.add('drag-over');
+        });
+        slotEl.addEventListener('dragleave', () => {
+          slotEl.classList.remove('drag-over');
+        });
+        slotEl.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slotEl.classList.remove('drag-over');
+          if (state.lockedSlots.has(idx)) return;
+          try {
+            const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+            moveCardToSlot(payload, idx);
+          } catch (err) {
+            // Ignore
+          }
+        });
+
+        // Tap-to-Place Listener on Slot
+        slotEl.addEventListener('click', () => {
+          if (state.lockedSlots.has(idx)) return;
+          if (state.selected) {
+            moveCardToSlot(state.selected, idx);
+          }
+        });
+
+        const nodeAccent = isLocked ? '#39ff14' : (isWrong ? '#ff3355' : ev.nodeColor);
+
+        const stem = document.createElement('div');
+        stem.className = 'slot-stem';
+        stem.style.backgroundColor = nodeAccent;
+        stem.style.boxShadow = `0 0 8px ${nodeAccent}`;
+
+        const sqNode = document.createElement('div');
+        sqNode.className = 'bar-square-node';
+        sqNode.style.backgroundColor = nodeAccent;
+        sqNode.style.boxShadow = `0 0 10px ${nodeAccent}`;
+
+        unit.appendChild(slotEl);
+        unit.appendChild(stem);
+        unit.appendChild(sqNode);
+
+        canvas.appendChild(unit);
+      });
+    }
+
+    /**
+     * Render Shuffled Vector Card Bank Tray
+     */
+    function renderTray() {
+      const trayEl = document.getElementById('card-tray');
+      trayEl.innerHTML = '';
+
+      if (state.tray.length === 0) {
+        trayEl.innerHTML = `
+          <div class="tray-empty-msg">
+            <strong style="color: var(--neon-green); font-size: 0.95rem; letter-spacing: 0.5px;">ALL 20 VECTOR CARDS ARE ON THE TIMELINE!</strong>
+            <span style="font-size: 0.82rem;">Click <strong style="color: var(--neon-cyan);">CHECK TIMELINE</strong> above to verify your chronological order.</span>
+          </div>
+        `;
+        return;
+      }
+
+      state.tray.forEach((eventId) => {
+        trayEl.appendChild(createVectorCard(eventId, 'tray', null));
+      });
+    }
+
+    /**
+     * 10. CARD MOVEMENT & SWAPPING
+     */
+    function moveCardToSlot(dragged, targetIdx) {
+      if (state.lockedSlots.has(targetIdx)) return;
+      startTimerIfNeeded();
+
+      const existingTargetId = state.slots[targetIdx];
+      state.wrongSlots.delete(targetIdx);
+      if (dragged.source === 'slot' && dragged.slotIndex !== null) {
+        state.wrongSlots.delete(dragged.slotIndex);
+      }
+
+      if (dragged.source === 'tray') {
+        state.tray = state.tray.filter(id => id !== dragged.id);
+        if (existingTargetId) state.tray.push(existingTargetId);
+        state.slots[targetIdx] = dragged.id;
+      } else if (dragged.source === 'slot') {
+        const fromIdx = dragged.slotIndex;
+        if (fromIdx === targetIdx) {
+          state.selected = null;
+          renderAll();
+          return;
         }
+        state.slots[targetIdx] = dragged.id;
+        state.slots[fromIdx] = existingTargetId;
+      }
 
-        // --- ACTIVITY 1: READING WITH PAGINATION & VOCAB HIGHLIGHTING ---
-        function startReading() {
-            currentReadingIndex = 0;
-            renderReading();
+      state.selected = null;
+      playTone('place');
+      renderAll();
+    }
+
+    function returnCardToTray(dragged) {
+      if (dragged.source !== 'slot') return;
+      const fromIdx = dragged.slotIndex;
+      if (state.lockedSlots.has(fromIdx)) return;
+
+      state.slots[fromIdx] = null;
+      state.wrongSlots.delete(fromIdx);
+      if (!state.tray.includes(dragged.id)) {
+        state.tray.push(dragged.id);
+      }
+      state.selected = null;
+      playTone('place');
+      renderAll();
+    }
+
+    /**
+     * 11. CHECK TIMELINE & AWARD MIND POINTS
+     */
+    function checkTimeline() {
+      startTimerIfNeeded();
+
+      const filledUnlocked = [];
+      for (let i = 0; i < EVENTS.length; i++) {
+        if (!state.lockedSlots.has(i) && state.slots[i] !== null) {
+          filledUnlocked.push(i);
         }
+      }
 
-        function renderReading() {
-            wordsToFind = currentLevel.vocabulary.map(v => v.word.toLowerCase());
-            const cloudHTML = currentLevel.vocabulary.map(v =>
-                `<span class="cloud-word" id="cloud-${v.word.replace(/\s+/g, '-').toLowerCase()}">${v.word}</span>`
-            ).join('');
-
-            const isFirst = currentReadingIndex === 0;
-            const isLast = currentReadingIndex === currentLevel.reading.length - 1;
-            const currentPassage = currentLevel.reading[currentReadingIndex];
-
-            const interactiveText = currentPassage.text.replace(/([a-zA-Z0-9'-]+)/g, '<span class="interactive-word" onclick="checkWord(this)">$1</span>');
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size: 0.9rem;">
-                        <span>SECTION ${currentReadingIndex + 1} OF ${currentLevel.reading.length}</span>
-                    </div>
-
-                    <h2 style="margin-top:0; color: #fff;">Find &amp; Highlight Key Vocab</h2>
-                    <div class="word-cloud">
-                        ${cloudHTML}
-                    </div>
-
-                    <h2 style="color: var(--neon-cyan);">❖ ${currentPassage.section}</h2>
-                    <p style="font-size: 1.12rem; line-height: 1.85;">${interactiveText}</p>
-                    <hr>
-
-                    <div class="nav-buttons">
-                        <button class="action-btn" style="width:48%;" onclick="navigateReading(-1)" ${isFirst ? 'disabled' : ''}>Previous</button>
-                        ${isLast
-                            ? `<button class="action-btn btn-correct" style="width:48%;" onclick="updateXP(25); showToast('Reading Complete! +25 Mind Points', 'var(--neon-green)'); startQuiz();">Complete Reading (+25 MP)</button>`
-                            : `<button class="action-btn" style="width:48%;" onclick="navigateReading(1)">Next</button>`
-                        }
-                    </div>
-                </div>
-            `;
+      if (filledUnlocked.length === 0) {
+        if (state.lockedSlots.size === EVENTS.length) {
+          showVictoryModal();
+        } else {
+          showToast('Place at least one vector card on the timeline first!', 'var(--neon-gold)');
         }
+        return;
+      }
 
-        function navigateReading(direction) {
-            currentReadingIndex += direction;
-            renderReading();
+      let newlyCorrect = 0;
+      let newlyWrong = 0;
+      const wrongIndices = [];
+
+      filledUnlocked.forEach((idx) => {
+        state.totalChecked++;
+        if (state.slots[idx] === EVENTS[idx].id) {
+          state.lockedSlots.add(idx);
+          state.wrongSlots.delete(idx);
+          state.correctChecked++;
+          newlyCorrect++;
+        } else {
+          state.wrongSlots.add(idx);
+          newlyWrong++;
+          wrongIndices.push(idx);
         }
+      });
 
-        function checkWord(element) {
-            const clickedWord = element.innerText.toLowerCase().replace(/^['-]+|['-]+$/g, '').trim();
-            const matchedVocab = wordsToFind.find(word => {
-                if (word === clickedWord) return true;
-                const phraseWords = word.split(' ');
-                return phraseWords.includes(clickedWord) && clickedWord.length > 2;
-            });
+      const unlockedCps = evaluateCheckpoints();
+      const earnedMP = newlyCorrect * 10 + unlockedCps.length * 25;
+      if (earnedMP > 0) updateXP(earnedMP);
 
-            if (matchedVocab) {
-                element.classList.add('revealed');
-                const cloudEl = document.getElementById(`cloud-${matchedVocab.replace(/\s+/g, '-')}`);
-                if (cloudEl && !cloudEl.classList.contains('found')) {
-                    cloudEl.classList.add('found');
-                    updateXP(5);
-                    showToast(`Found "${matchedVocab}"! +5 MP`, 'var(--neon-cyan)');
-                }
-            } else {
-                element.classList.add('shake');
-                setTimeout(() => element.classList.remove('shake'), 350);
-            }
+      state.selected = null;
+      renderAll();
+
+      // Shake wrong slots
+      const slotNodes = document.querySelectorAll('.timeline-slot');
+      wrongIndices.forEach((idx) => {
+        const node = slotNodes[idx];
+        if (node) {
+          node.classList.remove('animate-shake');
+          void node.offsetWidth;
+          node.classList.add('animate-shake');
         }
+      });
 
-        // --- ACTIVITY 2: KNOWLEDGE CHECK QUIZ ---
-        function startQuiz() {
-            currentQuestionIndex = 0;
-            renderQuiz();
+      if (state.lockedSlots.size === EVENTS.length) {
+        triggerVictory();
+      } else if (unlockedCps.length > 0) {
+        playTone('checkpoint');
+        const lastCp = unlockedCps[unlockedCps.length - 1];
+        showToast(`${lastCp.label} (${lastCp.title}) Unlocked! +${earnedMP} Mind Points`, 'var(--neon-green)');
+      } else if (newlyWrong === 0 && newlyCorrect > 0) {
+        playTone('correct');
+        showToast(`Awesome! ${newlyCorrect} milestone${newlyCorrect > 1 ? 's' : ''} locked! +${earnedMP} MP`, 'var(--neon-green)');
+      } else if (newlyCorrect > 0 && newlyWrong > 0) {
+        playTone('wrong');
+        showToast(`${newlyCorrect} locked (+${earnedMP} MP)! Adjust ${newlyWrong} red-highlighted slot${newlyWrong > 1 ? 's' : ''}.`, 'var(--neon-gold)');
+      } else {
+        playTone('wrong');
+        showToast(`${newlyWrong} card${newlyWrong > 1 ? 's are' : ' is'} out of order. Try swapping them!`, 'var(--neon-red)');
+      }
+    }
+
+    /**
+     * 12. HINT SYSTEM
+     */
+    function useHint() {
+      if (state.isVictory) return;
+      startTimerIfNeeded();
+
+      const targetIdx = EVENTS.findIndex((_, i) => !state.lockedSlots.has(i));
+      if (targetIdx === -1) return;
+
+      const correctEv = EVENTS[targetIdx];
+      const correctId = correctEv.id;
+
+      const inTray = state.tray.includes(correctId);
+      const currentSlotIdx = state.slots.indexOf(correctId);
+      const occupantId = state.slots[targetIdx];
+
+      if (inTray) {
+        state.tray = state.tray.filter(id => id !== correctId);
+      } else if (currentSlotIdx !== -1 && currentSlotIdx !== targetIdx) {
+        state.slots[currentSlotIdx] = null;
+        state.wrongSlots.delete(currentSlotIdx);
+      }
+
+      if (occupantId && occupantId !== correctId) {
+        state.tray.push(occupantId);
+      }
+
+      state.slots[targetIdx] = correctId;
+      state.lockedSlots.add(targetIdx);
+      state.wrongSlots.delete(targetIdx);
+      state.hintsUsed++;
+      state.selected = null;
+
+      const unlockedCps = evaluateCheckpoints();
+      if (unlockedCps.length > 0) updateXP(unlockedCps.length * 25);
+
+      renderAll();
+      scrollToSlot(targetIdx);
+
+      const slotNode = document.querySelectorAll('.timeline-slot')[targetIdx];
+      if (slotNode) slotNode.classList.add('animate-lock-pulse');
+
+      if (unlockedCps.length > 0) {
+        playTone('checkpoint');
+        showToast(`Hint placed #${targetIdx + 1} (${correctEv.title}) & unlocked ${unlockedCps[0].label}!`, 'var(--neon-green)');
+      } else {
+        playTone('correct');
+        showToast(`Hint: "${correctEv.title}" placed at #${targetIdx + 1} (${correctEv.date})`, 'var(--neon-gold)');
+      }
+
+      if (state.lockedSlots.size === EVENTS.length) {
+        setTimeout(triggerVictory, 550);
+      }
+    }
+
+    /**
+     * 13. FACT MODAL
+     */
+    function openFactModal(eventId, revealDate) {
+      const ev = getEventById(eventId);
+      if (!ev) return;
+
+      document.getElementById('fact-modal-art').innerHTML = ev.svg;
+      document.getElementById('fact-modal-title').textContent = ev.title;
+      document.getElementById('fact-modal-era').textContent = ev.era;
+      document.getElementById('fact-modal-date').textContent = revealDate ? ev.date : 'Date Hidden (Pure Order)';
+      document.getElementById('fact-modal-text').textContent = ev.fact;
+      document.getElementById('fact-modal').classList.add('open');
+    }
+
+    function closeFactModal() {
+      document.getElementById('fact-modal').classList.remove('open');
+    }
+
+    /**
+     * 14. VICTORY MODAL & NEON CONFETTI BURST
+     */
+    function triggerVictory() {
+      state.isVictory = true;
+      stopTimer();
+      updateXP(50);
+      playTone('victory');
+      renderAll();
+      launchConfetti();
+      setTimeout(showVictoryModal, 480);
+    }
+
+    function showVictoryModal() {
+      const acc = state.totalChecked === 0
+        ? 100
+        : Math.round((state.correctChecked / state.totalChecked) * 100);
+
+      let stars = 3;
+      if (state.hintsUsed >= 4 || acc < 65) stars = 1;
+      else if (state.hintsUsed >= 1 || acc < 85) stars = 2;
+
+      const starsWrap = document.getElementById('victory-stars');
+      starsWrap.innerHTML = '';
+      for (let i = 1; i <= 3; i++) {
+        const color = i <= stars ? '#ffcc00' : '#2a314d';
+        const glow = i <= stars ? 'filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.75));' : '';
+        starsWrap.innerHTML += `
+          <svg width="38" height="38" fill="${color}" style="${glow}" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        `;
+      }
+
+      document.getElementById('victory-time').textContent = formatTime(state.timerSeconds);
+      document.getElementById('victory-accuracy').textContent = `${acc}%`;
+      document.getElementById('victory-mp').textContent = `+${state.sessionXP} MP`;
+      document.getElementById('victory-hints').textContent = state.hintsUsed;
+      document.getElementById('victory-modal').classList.add('open');
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#00e5ff', '#9933ff', '#ffcc00', '#39ff14', '#ff3355', '#ffffff'];
+      const particles = Array.from({ length: 160 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height * 0.55,
+        w: 6 + Math.random() * 6,
+        h: 4 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 4,
+        vy: 2.6 + Math.random() * 4.2,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.22
+      }));
+
+      let frames = 0;
+      function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        particles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vRot;
+          if (p.y < canvas.height + 20) active = true;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        frames++;
+        if (active && frames < 260) {
+          requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
+      }
+      requestAnimationFrame(frame);
+    }
 
-        function renderQuiz() {
-            const qData = currentLevel.questions[currentQuestionIndex];
-            const isLast = currentQuestionIndex === currentLevel.questions.length - 1;
-            const isFirst = currentQuestionIndex === 0;
-            let interactionHTML = '';
+    /**
+     * 15. WIRE UP EVENTS & CONTROLS
+     */
+    function setupEvents() {
+      const btnDates = document.getElementById('mode-dates-btn');
+      const btnOrder = document.getElementById('mode-order-btn');
 
-            if (qData.type === 'mc') {
-                interactionHTML = `
-                    <div id="mc-options" style="display:flex; flex-direction:column; gap:10px; margin-top: 1.5rem;">
-                        ${qData.options.map((opt, index) => `
-                            <button class="action-btn" style="text-align: left; text-transform:none; padding:1rem;"
-                            onclick="checkQuizAnswer(this, ${index}, ${qData.answer}, 'mc')">${opt}</button>
-                        `).join('')}
-                    </div>`;
-            } else if (qData.type === 'fill') {
-                interactionHTML = `
-                    <div style="margin-top: 1.5rem;">
-                        <input type="text" id="fill-input" placeholder="Type answer here..." autocomplete="off">
-                        <button class="action-btn" style="margin-top:1rem;" onclick="checkQuizAnswer(document.getElementById('fill-input'), null, '${escapeSingleQuotes(qData.answer)}', 'fill')">Submit Answer</button>
-                    </div>`;
-            }
+      function setMode(m) {
+        if (state.mode === m) return;
+        state.mode = m;
+        btnDates.classList.toggle('active', m === 'dates');
+        btnOrder.classList.toggle('active', m === 'order');
+        initGame();
+        showToast(
+          m === 'dates' ? 'Mode: Match the Dates' : 'Mode: Pure Order Challenge (Dates Hidden)',
+          'var(--neon-purple)'
+        );
+      }
 
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size: 0.9rem;">
-                        <span>QUESTION ${currentQuestionIndex + 1} OF ${currentLevel.questions.length}</span>
-                    </div>
-                    <p style="font-size: 1.2rem; font-weight: bold; color: var(--text-main); line-height:1.5;">${qData.q}</p>
-                    ${interactionHTML}
+      btnDates.addEventListener('click', () => setMode('dates'));
+      btnOrder.addEventListener('click', () => setMode('order'));
 
-                    <div class="nav-buttons">
-                        <button class="action-btn" style="width:48%;" onclick="navigateQuiz(-1)" ${isFirst ? 'disabled' : ''}>Previous</button>
-                        <button class="action-btn" style="width:48%;" onclick="navigateQuiz(1)">${isLast ? 'Finish' : 'Next'}</button>
-                    </div>
-                </div>
-            `;
+      document.getElementById('check-btn').addEventListener('click', checkTimeline);
+      document.getElementById('hint-btn').addEventListener('click', useHint);
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        initGame();
+        showToast('Timeline reset and all 20 vector cards shuffled!', 'var(--neon-cyan)');
+      });
+
+      document.getElementById('cancel-selection-btn').addEventListener('click', () => {
+        state.selected = null;
+        renderAll();
+      });
+
+      // Sound Toggle
+      document.getElementById('sound-btn').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById('sound-label').textContent = state.soundEnabled ? '🔊 Sound On' : '🔇 Muted';
+      });
+
+      // Horizontal Timeline Scroll Buttons + Smooth Mouse-Wheel Scroll
+      const scroller = document.getElementById('timeline-scroller');
+      document.getElementById('scroll-left-btn').addEventListener('click', () => {
+        scroller.scrollBy({ left: -460, behavior: 'smooth' });
+      });
+      document.getElementById('scroll-right-btn').addEventListener('click', () => {
+        scroller.scrollBy({ left: 460, behavior: 'smooth' });
+      });
+
+      scroller.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          scroller.scrollLeft += e.deltaY * 1.15;
         }
+      }, { passive: false });
 
-        function checkQuizAnswer(element, selectedIndex, correctAnswer, type) {
-            if (type === 'mc') {
-                const allButtons = element.parentElement.querySelectorAll('button');
-                allButtons.forEach(btn => btn.style.pointerEvents = 'none');
-
-                if (selectedIndex === correctAnswer) {
-                    element.classList.add('btn-correct');
-                    updateXP(15);
-                    showToast('Correct! +15 Mind Points', 'var(--neon-green)');
-                } else {
-                    element.classList.add('btn-wrong', 'shake');
-                    allButtons[correctAnswer].classList.add('btn-correct');
-                    showToast('Not quite! Check the green highlight.', 'var(--neon-red)');
-                }
-            } else if (type === 'fill') {
-                const userAnswer = element.value.trim().toLowerCase();
-                const actualAnswer = String(correctAnswer).toLowerCase();
-                if (userAnswer && (userAnswer === actualAnswer || userAnswer.includes(actualAnswer))) {
-                    element.style.borderColor = 'var(--neon-green)';
-                    element.style.color = 'var(--neon-green)';
-                    updateXP(15);
-                    showToast('Correct! +15 Mind Points', 'var(--neon-green)');
-                } else {
-                    element.style.borderColor = 'var(--neon-red)';
-                    element.classList.add('shake');
-                    showToast('Try again!', 'var(--neon-red)');
-                    setTimeout(() => element.classList.remove('shake'), 400);
-                }
-            }
+      // Tray Drop Zone (return placed card to card bank)
+      const trayEl = document.getElementById('card-tray');
+      trayEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        trayEl.classList.add('drag-over');
+      });
+      trayEl.addEventListener('dragleave', () => {
+        trayEl.classList.remove('drag-over');
+      });
+      trayEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        trayEl.classList.remove('drag-over');
+        try {
+          const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+          returnCardToTray(payload);
+        } catch (err) {
+          // Ignore
         }
-
-        function navigateQuiz(direction) {
-            currentQuestionIndex += direction;
-            if (currentQuestionIndex >= currentLevel.questions.length) {
-                showToast('Knowledge Check Completed!', 'var(--neon-gold)');
-                renderMenu();
-            } else {
-                renderQuiz();
-            }
+      });
+      trayEl.addEventListener('click', () => {
+        if (state.selected && state.selected.source === 'slot') {
+          returnCardToTray(state.selected);
         }
+      });
 
-        // --- ACTIVITY 3: VOCAB FLASHCARDS (3D FLIP) ---
-        function startFlashcards() {
-            currentFlashcardIndex = 0;
-            renderFlashcardUI();
-        }
+      // Modals
+      document.getElementById('close-fact-btn').addEventListener('click', closeFactModal);
+      document.getElementById('fact-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'fact-modal') closeFactModal();
+      });
 
-        function renderFlashcardUI() {
-            const vocab = currentLevel.vocabulary;
-            const currentCard = vocab[currentFlashcardIndex];
+      document.getElementById('victory-inspect-btn').addEventListener('click', () => {
+        document.getElementById('victory-modal').classList.remove('open');
+        showToast('Click any locked card or its Fact button to explore history!', 'var(--neon-cyan)');
+      });
+      document.getElementById('victory-play-again-btn').addEventListener('click', initGame);
+    }
 
-            let examplesHTML = '';
-            if (currentCard.examples && currentCard.examples.length > 0) {
-                examplesHTML = `<div class="flashcard-examples">` +
-                    currentCard.examples.map(ex => `
-                        <div class="example-item">
-                            <div class="example-en">${ex.en}</div>
-                            <div class="example-zh">${ex.zh}</div>
-                        </div>
-                    `).join('') + `</div>`;
-            }
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop" style="text-align:center;">
-                    <h2 style="margin-top:0;">Vocabulary Flashcards</h2>
-                    <p style="color:var(--text-muted); font-size:0.9rem;">CARD ${currentFlashcardIndex + 1} OF ${vocab.length} • TAP CARD TO FLIP</p>
-
-                    <div class="flashcard-scene" onclick="flipCard(this)">
-                        <div class="flashcard">
-                            <div class="flashcard-face flashcard-front">
-                                <div style="font-size: 3rem; margin-bottom: 12px;">${currentCard.icon}</div>
-                                <div>${currentCard.word}</div>
-                            </div>
-                            <div class="flashcard-face flashcard-back">
-                                <div style="font-size: 2.8rem; margin: 12px 0 6px 0;">${currentCard.icon}</div>
-                                <div style="font-size: 1.5rem; margin-bottom: 10px; color: var(--neon-cyan);">${currentCard.chinese}</div>
-                                ${examplesHTML}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="nav-buttons">
-                        <button class="action-btn" style="width:48%;" onclick="navigateFlashcard(-1)">Previous</button>
-                        <button class="action-btn" style="width:48%;" onclick="navigateFlashcard(1)">Next</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function flipCard(sceneElement) {
-            const card = sceneElement.querySelector('.flashcard');
-            card.classList.toggle('is-flipped');
-        }
-
-        function navigateFlashcard(direction) {
-            const vocab = currentLevel.vocabulary;
-            currentFlashcardIndex += direction;
-            if (currentFlashcardIndex < 0) currentFlashcardIndex = vocab.length - 1;
-            if (currentFlashcardIndex >= vocab.length) currentFlashcardIndex = 0;
-            renderFlashcardUI();
-        }
-
-        // --- ACTIVITY 4: UNSCRAMBLE VOCAB ---
-        function startVocabUnscramble() {
-            currentVocabUnscrambleIndex = 0;
-            renderVocabUnscramble();
-        }
-
-        function scrambleString(str) {
-            const arr = str.split('');
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            const scrambled = arr.join('');
-            if (scrambled === str && str.length > 3) return scrambleString(str);
-            return scrambled;
-        }
-
-        function renderVocabUnscramble() {
-            const wordsList = currentLevel.unscrambleWords;
-            const originalWord = wordsList[currentVocabUnscrambleIndex];
-            const scrambledWord = scrambleString(originalWord);
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop" style="text-align:center;">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
-                        <span>WORD ${currentVocabUnscrambleIndex + 1} OF ${wordsList.length}</span>
-                    </div>
-                    <h2 style="margin-top:0;">Unscramble the Word</h2>
-
-                    <div style="font-size: 2.3rem; font-weight: bold; letter-spacing: 5px; color: var(--neon-gold); margin: 1.8rem 0; font-family: 'Playfair Display', serif;">
-                        ${scrambledWord.toUpperCase()}
-                    </div>
-
-                    <input type="text" id="unscramble-input" placeholder="Type correct word..." autocomplete="off">
-
-                    <button class="action-btn" onclick="checkVocabUnscramble('${escapeSingleQuotes(originalWord)}')">Check</button>
-                </div>
-            `;
-        }
-
-        function checkVocabUnscramble(correctWord) {
-            const inputEl = document.getElementById('unscramble-input');
-            const userWord = inputEl.value.trim().toLowerCase();
-
-            if (userWord === correctWord.toLowerCase()) {
-                inputEl.style.borderColor = 'var(--neon-green)';
-                inputEl.style.color = 'var(--neon-green)';
-                updateXP(15);
-                showToast('Correct! +15 MP', 'var(--neon-green)');
-                setTimeout(() => {
-                    currentVocabUnscrambleIndex++;
-                    if (currentVocabUnscrambleIndex >= currentLevel.unscrambleWords.length) {
-                        updateXP(50);
-                        showToast('Unscramble Complete! +50 Bonus MP', 'var(--neon-gold)');
-                        renderMenu();
-                    } else {
-                        renderVocabUnscramble();
-                    }
-                }, 750);
-            } else {
-                inputEl.style.borderColor = 'var(--neon-red)';
-                inputEl.classList.add('shake');
-                showToast('Try again!', 'var(--neon-red)');
-                setTimeout(() => inputEl.classList.remove('shake'), 400);
-            }
-        }
-
-        // --- ACTIVITY 5: SENTENCE BUILDER ---
-        function startSentenceUnscramble() {
-            currentSentenceIndex = 0;
-            renderSentenceUnscramble();
-        }
-
-        function renderSentenceUnscramble() {
-            const sentencesList = currentLevel.sentences;
-            const sentence = sentencesList[currentSentenceIndex];
-            const words = sentence.split(' ');
-
-            const scrambledWords = [...words];
-            for (let i = scrambledWords.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [scrambledWords[i], scrambledWords[j]] = [scrambledWords[j], scrambledWords[i]];
-            }
-
-            const wordsHTML = scrambledWords.map((w, i) =>
-                `<div class="draggable-word" id="word-${i}" onclick="moveWordOnClick(this)">${w}</div>`
-            ).join('');
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
-                        <span>SENTENCE ${currentSentenceIndex + 1} OF ${sentencesList.length}</span>
-                    </div>
-                    <h2 style="margin-top:0;">Build the Sentence</h2>
-                    <p style="color:var(--text-muted);">Click words in the correct order.</p>
-
-                    <div id="sentence-answer-zone" class="sentence-dropzone"></div>
-                    <div id="sentence-word-bank" class="word-bank">${wordsHTML}</div>
-
-                    <button class="action-btn" onclick="checkSentenceUnscramble('${escapeSingleQuotes(sentence)}')">Submit</button>
-                </div>
-            `;
-        }
-
-        function moveWordOnClick(element) {
-            const answerZone = document.getElementById('sentence-answer-zone');
-            const wordBank = document.getElementById('sentence-word-bank');
-
-            if (element.parentNode.id === 'sentence-word-bank') {
-                answerZone.appendChild(element);
-            } else {
-                wordBank.appendChild(element);
-            }
-        }
-
-        function checkSentenceUnscramble(correctSentence) {
-            const answerZone = document.getElementById('sentence-answer-zone');
-            const currentWords = Array.from(answerZone.children).map(el => el.innerText);
-            const userSentence = currentWords.join(' ');
-
-            if (userSentence === correctSentence) {
-                answerZone.style.borderColor = 'var(--neon-green)';
-                updateXP(25);
-                showToast('Sentence Built! +25 MP', 'var(--neon-green)');
-                setTimeout(() => {
-                    currentSentenceIndex++;
-                    if (currentSentenceIndex >= currentLevel.sentences.length) {
-                        updateXP(50);
-                        showToast('Sentence Builder Complete! +50 Bonus MP', 'var(--neon-gold)');
-                        renderMenu();
-                    } else {
-                        renderSentenceUnscramble();
-                    }
-                }, 900);
-            } else {
-                answerZone.style.borderColor = 'var(--neon-red)';
-                answerZone.classList.add('shake');
-                showToast('Order is not quite right. Try again!', 'var(--neon-red)');
-                setTimeout(() => answerZone.classList.remove('shake'), 400);
-            }
-        }
-
-        // --- ACTIVITY 6: TIME CONCEPTS ---
-        function startConceptChallenge() {
-            conceptChallengeIndex = 0;
-            activeConcepts = [...timeConceptsDB].sort(() => 0.5 - Math.random());
-            renderConceptChallenge();
-        }
-
-        function renderConceptChallenge() {
-            if (conceptChallengeIndex >= activeConcepts.length) {
-                updateXP(40);
-                showToast('Time Concepts Complete! +40 Bonus MP', 'var(--neon-gold)');
-                return renderMenu();
-            }
-
-            const currentConcept = activeConcepts[conceptChallengeIndex];
-            const pool = ALL_TIME_CONCEPTS.filter(name => name !== currentConcept.name).sort(() => 0.5 - Math.random());
-            const options = [currentConcept.name, ...pool.slice(0, 3)].sort(() => 0.5 - Math.random());
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
-                        <span>CONCEPT ${conceptChallengeIndex + 1} OF ${activeConcepts.length}</span>
-                    </div>
-
-                    <div style="background: rgba(0, 229, 255, 0.08); padding: 0.7rem; border-radius: 6px; margin-bottom: 1.4rem; border-left: 3px solid var(--neon-cyan);">
-                        <span style="color: var(--neon-cyan); font-size: 1rem; font-weight:bold; text-transform: uppercase;">${currentConcept.category}</span>
-                    </div>
-
-                    <div id="concept-feedback-zone" class="concept-display-box">
-                        <span style="font-size: 3.6rem; user-select: none; margin-bottom: 12px;">${currentConcept.emoji}</span>
-                        <p style="margin: 0; color: var(--text-main); font-size: 1.1rem; max-width: 600px;">${currentConcept.clue}</p>
-                    </div>
-
-                    <h3 style="color: #fff; margin-bottom: 1.2rem;">Identify this time-travel concept:</h3>
-
-                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        ${options.map(opt => `
-                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.8rem; font-size: 0.95rem;"
-                            onclick="checkConceptGuess(this, '${escapeSingleQuotes(opt)}', '${escapeSingleQuotes(currentConcept.name)}')">${opt}</button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function checkConceptGuess(btn, selected, correct) {
-            const allButtons = btn.parentElement.querySelectorAll('button');
-            allButtons.forEach(b => b.style.pointerEvents = 'none');
-
-            if (selected === correct) {
-                btn.classList.add('btn-correct');
-                updateXP(20);
-                showToast('Correct Concept! +20 MP', 'var(--neon-green)');
-                setTimeout(() => {
-                    conceptChallengeIndex++;
-                    renderConceptChallenge();
-                }, 950);
-            } else {
-                btn.classList.add('btn-wrong', 'shake');
-                const feedbackZone = document.getElementById('concept-feedback-zone');
-                feedbackZone.innerHTML = `
-                    <div style="color: var(--neon-red); font-size: 1.3rem; font-weight: bold; font-family: 'Playfair Display', serif;">
-                        Incorrect! This matches: ${correct}.
-                    </div>`;
-                setTimeout(() => {
-                    conceptChallengeIndex++;
-                    renderConceptChallenge();
-                }, 1800);
-            }
-        }
-
-        // --- ACTIVITY 7: TIME IDIOM DECODE ---
-        function startIdiomChallenge() {
-            idiomChallengeIndex = 0;
-            activeIdioms = [...timeIdiomsDB].sort(() => 0.5 - Math.random());
-            renderIdiomChallenge();
-        }
-
-        function renderIdiomChallenge() {
-            if (idiomChallengeIndex >= activeIdioms.length) {
-                updateXP(50);
-                showToast('Time Idiom Decode Complete! +50 Bonus MP', 'var(--neon-gold)');
-                return renderMenu();
-            }
-
-            const currentIdiom = activeIdioms[idiomChallengeIndex];
-            const pool = ALL_IDIOM_MEANINGS.filter(m => m !== currentIdiom.meaning).sort(() => 0.5 - Math.random());
-            const options = [currentIdiom.meaning, ...pool.slice(0, 3)].sort(() => 0.5 - Math.random());
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
-                        <span>IDIOM ${idiomChallengeIndex + 1} OF ${activeIdioms.length}</span>
-                    </div>
-
-                    <div id="idiom-feedback-zone" class="concept-display-box" style="border-color: var(--neon-cyan);">
-                        <span style="font-size: 3.8rem; user-select: none; margin-bottom: 14px;">${currentIdiom.emoji}</span>
-                        <h2 style="margin: 0; color: var(--neon-gold); font-family: 'Playfair Display', serif; text-transform: lowercase;">"${currentIdiom.idiom}"</h2>
-                    </div>
-
-                    <h3 style="color: #fff; margin-bottom: 1.2rem;">What does this idiom mean?</h3>
-
-                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        ${options.map(opt => `
-                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.7rem; font-size: 0.9rem; line-height: 1.3; text-transform: none;"
-                            onclick="checkIdiomGuess(this, '${escapeSingleQuotes(opt)}', '${escapeSingleQuotes(currentIdiom.meaning)}')">${opt}</button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function checkIdiomGuess(btn, selected, correct) {
-            const allButtons = btn.parentElement.querySelectorAll('button');
-            allButtons.forEach(b => b.style.pointerEvents = 'none');
-
-            if (selected === correct) {
-                btn.classList.add('btn-correct');
-                updateXP(20);
-                showToast('Decoded! +20 MP', 'var(--neon-green)');
-                setTimeout(() => {
-                    idiomChallengeIndex++;
-                    renderIdiomChallenge();
-                }, 950);
-            } else {
-                btn.classList.add('btn-wrong', 'shake');
-                const feedbackZone = document.getElementById('idiom-feedback-zone');
-                feedbackZone.innerHTML = `
-                    <span style="display: block; color: var(--neon-red); font-size: 1.2rem; font-weight: bold; font-family: 'Playfair Display', serif;">
-                        Incorrect! It means: ${correct}.
-                    </span>`;
-                setTimeout(() => {
-                    idiomChallengeIndex++;
-                    renderIdiomChallenge();
-                }, 1800);
-            }
-        }
-
-        // --- ACTIVITY 8: SYNONYM MATCH ---
-        function startSynonymMatch() {
-            synonymChallengeIndex = 0;
-            activeSynonyms = [...currentLevel.synonyms].sort(() => 0.5 - Math.random());
-            renderSynonymMatch();
-        }
-
-        function renderSynonymMatch() {
-            if (synonymChallengeIndex >= activeSynonyms.length) {
-                updateXP(50);
-                showToast('Synonym Match Complete! +50 Bonus MP', 'var(--neon-gold)');
-                return renderMenu();
-            }
-
-            const currentPair = activeSynonyms[synonymChallengeIndex];
-            const pool = currentLevel.synonyms
-                .map(s => s.synonym)
-                .filter(syn => syn !== currentPair.synonym)
-                .sort(() => 0.5 - Math.random());
-
-            const options = [currentPair.synonym, ...pool.slice(0, 3)].sort(() => 0.5 - Math.random());
-
-            appContainer.innerHTML = `
-                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
-                <div class="reading-container animate-pop" style="padding-bottom: 1rem; text-align: center;">
-                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem;">
-                        <span>SYNONYM ${synonymChallengeIndex + 1} OF ${activeSynonyms.length}</span>
-                    </div>
-
-                    <h2 style="color: #fff; margin-bottom: 0.5rem;">Find the closest synonym for:</h2>
-
-                    <div style="background: rgba(0, 229, 255, 0.06); padding: 1.8rem; border-radius: 6px; margin-bottom: 2rem; border: 1px dashed rgba(0, 229, 255, 0.4); text-align: center;">
-                        <strong style="color: var(--neon-cyan); font-family: 'Playfair Display', serif; font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase;">
-                            ${currentPair.word}
-                        </strong>
-                    </div>
-
-                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        ${options.map(opt => `
-                            <button class="action-btn" style="margin-top: 0; padding: 1.2rem; font-size: 1.05rem;"
-                            onclick="checkSynonymGuess(this, '${escapeSingleQuotes(opt)}', '${escapeSingleQuotes(currentPair.synonym)}')">${opt}</button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function checkSynonymGuess(btn, selected, correct) {
-            const allButtons = btn.parentElement.querySelectorAll('button');
-            allButtons.forEach(b => b.style.pointerEvents = 'none');
-
-            if (selected === correct) {
-                btn.classList.add('btn-correct');
-                updateXP(15);
-                showToast('Great Match! +15 MP', 'var(--neon-green)');
-                setTimeout(() => {
-                    synonymChallengeIndex++;
-                    renderSynonymMatch();
-                }, 950);
-            } else {
-                btn.classList.add('btn-wrong', 'shake');
-                allButtons.forEach(b => {
-                    if (b.innerText.toLowerCase() === correct.toLowerCase()) {
-                        b.classList.add('btn-correct');
-                    }
-                });
-                setTimeout(() => {
-                    synonymChallengeIndex++;
-                    renderSynonymMatch();
-                }, 1700);
-            }
-        }
-
-        // Initialize application on load
-        init();
-    </script>
+    window.addEventListener('load', () => {
+      initParticles();
+      setupEvents();
+      initGame();
+    });
+  </script>
 </body>
 </html>
